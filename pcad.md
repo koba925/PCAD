@@ -1,5 +1,7 @@
 # 『プログラミングコンテスト攻略のためのアルゴリズムとデータ構造』
 
+## [PCAD]『プログラミングコンテスト攻略のためのアルゴリズムとデータ構造』
+
 PaizaでS取れなかったのがちょっと尾を引いており、突然ですが
 そっちの勉強をすることにしました
 
@@ -22,7 +24,7 @@ PaizaでS取れなかったのがちょっと尾を引いており、突然で�
 たいていの問題はPython3でも書けると思うんですがポインタが出てきたりすると
 読み替えが多くなりそうなので
 
-http://judge.u-aizu.ac.jp
+[AIZU ONLINE JUDGE](http://judge.u-aizu.ac.jp)
 
 ここ、ユーザ登録画面がhttpなんだけどいいのか・・・？というのは置いといて
 とりあえず"Getting Started - X Cubic"をやってみる
@@ -47,8 +49,8 @@ C++だから、えーと拡張子は.cppにして
 print(int(input()) ** 3)
 ```
 
-# [PCAD] 環境
+## [PCAD] 環境
 
-https://celtislab.net/archives/20180418/git-vscode/
+[Git入門（VSCode Git の使い方）](https://celtislab.net/archives/20180418/git-vscode/)
 
-# [PCAD]
+## [PCAD]
