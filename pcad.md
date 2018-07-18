@@ -37,3 +37,18 @@ C++だから、えーと拡張子は.cppにして
 おっとa.outができてしまった
 
 などなどしつつ初提出
+
+ついでにPythonもやってみる
+
+```python
+#! /usr/local/bin/python3
+# coding: utf-8
+
+print(int(input()) ** 3)
+```
+
+# [PCAD] 環境
+
+https://celtislab.net/archives/20180418/git-vscode/
+
+# [PCAD]
