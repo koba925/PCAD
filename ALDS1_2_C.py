@@ -24,4 +24,16 @@ def insertion_sort(c):
         c[j + 1] = w
     return c
 
-print(insertion_sort([4,2,5,6,1,3]))
+def selection_sort(c):
+    for i in range(len(c) - 1):
+        minj = i
+        for j in range(i + 1, len(c)):
+            if c[j] < c[minj]:
+                minj = j
+        swap(c, i, minj)
+    return c
+
+print(selection_sort([4,2,5,6,1,3]))
+print(selection_sort([1,2,3,4,5,6]))
+print(selection_sort([6,5,4,3,2,1]))
+
