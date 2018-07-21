@@ -6,34 +6,45 @@ def swap(c, i, j):
     c[i] = c[j]
     c[j] = t
 
-def bubble_sort(c):
+def bubble_sort(c, f):
     for i in range(len(c) - 1):
         for j in range(i + 1, len(c)):
             # print(i, j)
-            if c[i] > c[j]:
+            if f(c[i]) > f(c[j]):
                 swap(c, i, j)
     return c
 
-def insertion_sort(c):
+def insertion_sort(c, f):
     for i in range(1, len(c)):
         w = c[i]
         j = i - 1
-        while j >= 0 and c[j] > w:
+        while j >= 0 and f(c[j]) > f(w):
             c[j + 1] = c[j]
             j -= 1
         c[j + 1] = w
     return c
 
-def selection_sort(c):
+def selection_sort(c, f):
     for i in range(len(c) - 1):
         minj = i
         for j in range(i + 1, len(c)):
-            if c[j] < c[minj]:
+            if f(c[j]) < f(c[minj]):
                 minj = j
         swap(c, i, minj)
     return c
 
-print(selection_sort([4,2,5,6,1,3]))
-print(selection_sort([1,2,3,4,5,6]))
-print(selection_sort([6,5,4,3,2,1]))
+#def is_stable(c, s): 
+
+print(bubble_sort(['C4', 'H3', 'S3', 'C1', 'D2'], lambda x: x[1]))
+print(bubble_sort(['H3', 'S3', 'D2', 'C4', 'C1'], lambda x: x[1]))
+print(bubble_sort(['C1', 'C4', 'D2', 'H3', 'S3'], lambda x: x[1]))
+
+print(insertion_sort(['C4', 'H3', 'S3', 'C1', 'D2'], lambda x: x[1]))
+print(insertion_sort(['H3', 'S3', 'D2', 'C4', 'C1'], lambda x: x[1]))
+print(insertion_sort(['C1', 'C4', 'D2', 'H3', 'S3'], lambda x: x[1]))
+
+print(selection_sort(['C4', 'H3', 'S3', 'C1', 'D2'], lambda x: x[1]))
+print(selection_sort(['H3', 'S3', 'D2', 'C4', 'C1'], lambda x: x[1]))
+print(selection_sort(['C1', 'C4', 'D2', 'H3', 'S3'], lambda x: x[1]))
+
 
