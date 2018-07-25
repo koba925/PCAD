@@ -6,15 +6,15 @@ stack = [0] * 100
 
 def stack_push(v):
     global sp, stack
+    sp += 1
     # print("push: sp =", sp, ", v =", v)
     stack[sp] = v
-    sp += 1
 
 def stack_pop():
     global sp, stack
-    sp -= 1
     # print("pop: sp =", sp, ", v =", stack[sp])
-    return stack[sp]
+    sp -= 1
+    return stack[sp + 1]
 
 def stack_op2(op):
     v2 = stack_pop()
