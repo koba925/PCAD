@@ -546,3 +546,72 @@ def some_func():
     global v
     print(v)
 ```
+
+## [PCAD] ALDS1_3_A: Stack
+
+appendとpopでやるのは反則としておこう
+どこまでならゆるされるだろうか、と考えて配列とスタックポインタで書いてみた
+
+Pythonで「配列」って言うのは変かな
+でも気持ちは配列
+
+```python3
+#! /usr/local/bin/python3
+# coding: utf-8
+
+sp = 0
+stack = [0] * 100
+
+def stack_push(v):
+    global sp, stack
+    stack[sp] = v
+    sp += 1
+
+def stack_pop():
+    global sp, stack
+    sp -= 1
+    return stack[sp]
+
+def stack_op2(op):
+    v2 = stack_pop()
+    v1 = stack_pop()
+    stack_push(op(v1, v2))
+
+def calc(terms):
+    for t in terms:
+        if t == "+":
+            stack_op2(lambda v1, v2: v1 + v2)
+        elif t == "-":
+            stack_op2(lambda v1, v2: v1 - v2)
+        elif t == "*":
+            stack_op2(lambda v1, v2: v1 * v2)
+        else:
+            stack_push(int(t))
+    return(stack_pop())
+
+print(calc(input().split()))
+```
+
+動いたけど、解説と見比べてみたら`sp`が普通と1ずれてるな
+普通は指してるところが最新の値か 言われてみるとそうだな
+そのかわり0番目は空けておくのか
+
+```python3
+def stack_push(v):
+    global sp, stack
+    sp += 1
+    # print("push: sp =", sp, ", v =", v)
+    stack[sp] = v
+
+def stack_pop():
+    global sp, stack
+    # print("pop: sp =", sp, ", v =", stack[sp])
+    sp -= 1
+    return stack[sp + 1]
+```
+
+お、しかもエラーチェックやってるな
+と思ったら擬似コードのほうだけか
+
+ところで`+`とか`-`を関数として使うにはどうしたらいいのかな
+`lambda`で書いたけど
