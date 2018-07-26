@@ -615,3 +615,72 @@ def stack_pop():
 
 ところで`+`とか`-`を関数として使うにはどうしたらいいのかな
 `lambda`で書いたけど
+
+## [PCAD] ALDS1_3_B: Queue
+
+キューはどんなふうに実装するのかな
+配列をリングにするのか
+線形リストを使うか
+
+たぶん配列
+
+そういえば、キューの出し入れって英語で何ていうんだろう
+スタックならpushにpopだけど
+まあpushとpopにしておくか
+
+うひ100000行まであるのか
+またTLEするかな
+100000プロセス同時起動とはどんなDOS攻撃
+時間差つけて起動したほうがそれっぽい気がするけど
+キューの勉強だからってことかな
+
+今回はカッコつけてクラスにしてみました
+（クラスの書き方を調べながら）
+
+```python3
+class Queue:
+    def __init__(self, n):
+        self.n = n + 1
+        self.q = [0] * self.n
+        self.top = 0
+        self.last = 0
+
+    def is_empty(self):
+        return self.top == self.last
+
+    def push(self, v):
+        self.q[self.top] = v
+        self.top = (self.top + 1) % self.n
+
+    def pop(self):
+        v = self.q[self.last]
+        self.last = (self.last + 1) % self.n
+        return v
+
+n, q = [int(x) for x in input().split()]
+
+proc = Queue(n)
+for i in range(n):
+    name, ptime = input().split()
+    proc.push((name, int(ptime)))
+
+time = 0
+while not proc.is_empty():
+    name, ptime = proc.pop()
+    time += min(q, ptime)
+    ptime -= min(q, ptime)
+    if ptime <= 0:
+        print(name, time)
+    else:
+        proc.push((name, ptime))
+```
+
+TLEはせず無事ACでした
+
+解説
+なるほどhead、tail、enqueue、dequeueか
+そしてheadのほうから取り出すのか
+
+今回キューはクラスにしたけどプロセスの名前と時間はクラスにするのも大げさだなと
+思ったので単にタプルにしました
+Cのstructくらいなら気楽に書くんですけどPythonではどうするのが普通なんですかね
