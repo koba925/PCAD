@@ -684,3 +684,300 @@ TLEはせず無事ACでした
 今回キューはクラスにしたけどプロセスの名前と時間はクラスにするのも大げさだなと
 思ったので単にタプルにしました
 Cのstructくらいなら気楽に書くんですけどPythonではどうするのが普通なんですかね
+
+## [PCAD] ALDS1_3_C: Doubly Linked List
+
+リストの実装となるとポインタっぽいからC++で書いたほうがいいのかなーと
+思ってましたがやってみたらごく自然に書けました
+ただの先入観でした
+
+しかし意外と例外を細かく考える必要があるなあ
+この問題だとまだ操作が限られてるけどフルに実装するとまだいくつかのケースがある
+
+```python3
+#! /usr/local/bin/python3
+# coding: utf-8
+
+class DoublyLinkedNode:
+
+    def __init__(self, x):
+        self.prev = None
+        self.next = None
+        self.value = x
+
+    def print(self):
+        print(self.value, end = "")
+
+class DoublyLinkedList:
+
+    def __init__(self, n):
+        self.head = None
+        self.tail = None
+
+    def insert(self, x):
+        node = DoublyLinkedNode(x)
+        node.prev = None
+        node.next = self.head
+        if self.head is None:
+            self.tail = node
+        else:
+            self.head.prev = node
+        self.head = node
+
+    def delete(self, x):
+        node = self.head
+        while node is not None:
+            if node.value == x:
+                break
+            node = node.next
+        else:
+            return
+
+        if node == self.head and node == self.tail:
+            self.head = None
+            self.tail = None
+        elif node == self.head:
+            self.head = node.next
+            node.next.prev = None
+        elif node == self.tail:
+            self.tail = node.prev
+            node.prev.next = None
+        else:
+            node.prev.next = node.next
+            node.next.prev = node.prev
+
+    def delete_first(self):
+        self.head = self.head.next
+        if self.head is None:
+            self.tail = None
+        else:
+            self.head.prev = None
+
+    def delete_last(self):
+        self.tail = self.tail.prev
+        if self.tail is None:
+            self.head = None
+        else:
+            self.tail.next = None
+
+    def print(self):
+        node = self.head
+        while node is not None:
+            node.print()
+            node = node.next
+            if node is not None:
+                print(" ", end = "")
+        print()
+
+n = int(input())
+dll = DoublyLinkedList(n)
+
+for i in range(n):
+    line = input().split()
+    if line[0] == "insert":
+        dll.insert(int(line[1]))
+    elif line[0] == "delete":
+        dll.delete(int(line[1]))
+    elif line[0] == "deleteFirst":
+        dll.delete_first()
+    elif line[0] == "deleteLast":
+        dll.delete_last()
+
+dll.print()
+```
+
+で提出してみるとデータ200万個でTLE
+最初に全部確保したほうが早かったりするのかな？
+
+いや、ファイル入出力の方を疑うほうが先か
+`line = input().split()`の代わりに
+
+```python3
+    if i % 2 == 0:
+        line = ["insert", str(i)]
+    else:
+        line = ["delete", str(i - 1)]
+```
+
+としてみる
+
+サンプルデータダウンロードしようと思ったら
+
+```console
+:
+:
+insert 695
+..... (terminated because of the limitation)
+```
+
+なんてなっててびっくり
+画面上ではまあ200万行も読み込ませたら大変だししょうがないよねと思ったけど
+しかたないので自分でそれっぽく作って試しました
+
+```console
+$ time ALDS1_3_C.py < in.txt
+
+
+real    0m4.613s
+user    0m4.575s
+sys     0m0.019s
+```
+
+そんなに速くもないな
+07.45sでTLEにされてるから・・・
+
+元に戻して実行すると
+
+```console
+$ time ALDS1_3_C.py < in.txt
+
+real    0m14.741s
+user    0m12.575s
+sys     0m2.039s
+```
+
+うーん
+ファイル入出力が5倍くらい早くなれば・・・
+
+調べてたとき、sys.stdinの方がバッファリングの関係で速いとかなんとか
+書いてあった気がするなあ
+
+```console
+import sys
+
+for l in sys.stdin:
+    line = l.split()
+```
+
+ってしてみた
+
+```console
+$ time ALDS1_3_C.py < in.txt
+
+real    0m3.973s
+user    0m3.853s
+sys     0m0.034s
+```
+
+いや、ファイル読んでないやつより速いのはおかしいだろ
+キャッシュに入ったとしても
+いや、もとに戻すとやっぱ遅いな
+
+ま、まあいいか
+提出してみよう
+
+・・・さっきのは通ったけど最後のテストでTLE
+さっきはinsertしてdeleteして、って要素が増えなかったけど
+今度は要素が増えていく
+メモリ使う分遅くなってるのかな
+
+どうしていいのかわからないので正解出てる人のを参考に直しながら調べてみる
+`==`で比較してたのは間違いで`is`で比較する必要があった、というのはいいとして
+最後の決め手はメインルーチンを`_main`関数にしたってとこなんだけど
+そんなんで速くなるの？
+でも`stdin`と`is`と`_main`にしただけでACされた・・・
+
+そういうものとしておこう
+Paizaでは一度拒絶されたらリカバリできないから、最初から`stdin`と`_main`を
+使うようにしたほうがよさそうだ
+
+というわけで現状のソースはこう
+解説は明日読もう
+
+```python3
+#! /usr/local/bin/python3
+# coding: utf-8
+
+class DoublyLinkedNode:
+
+    def __init__(self, x):
+        self.prev = None
+        self.next = None
+        self.value = x
+
+    def print(self):
+        print(self.value, end = "")
+
+class DoublyLinkedList:
+
+    def __init__(self, n):
+        self.head = None
+        self.tail = None
+
+    def insert(self, x):
+        node = DoublyLinkedNode(x)
+        node.prev = None
+        node.next = self.head
+        if self.head is None:
+            self.tail = node
+        else:
+            self.head.prev = node
+        self.head = node
+
+    def delete(self, x):
+        node = self.head
+        while node is not None:
+            if node.value == x:
+                break
+            node = node.next
+        else:
+            return
+
+        if node is self.head and node is self.tail:
+            self.head = None
+            self.tail = None
+        elif node is self.head:
+            self.head = node.next
+            node.next.prev = None
+        elif node is self.tail:
+            self.tail = node.prev
+            node.prev.next = None
+        else:
+            node.prev.next = node.next
+            node.next.prev = node.prev
+
+    def delete_first(self):
+        self.head = self.head.next
+        if self.head is None:
+            self.tail = None
+        else:
+            self.head.prev = None
+
+    def delete_last(self):
+        self.tail = self.tail.prev
+        if self.tail is None:
+            self.head = None
+        else:
+            self.tail.next = None
+
+    def print(self):
+        node = self.head
+        while node is not None:
+            node.print()
+            node = node.next
+            if node is not None:
+                print(" ", end = "")
+        print()
+
+def _main():
+    n = int(input())
+    dll = DoublyLinkedList(n)
+
+    import sys
+
+    for l in sys.stdin:
+        line = l.split()
+        if line[0] == "insert":
+            dll.insert(int(line[1]))
+        elif line[0] == "delete":
+            dll.delete(int(line[1]))
+        elif line[0] == "deleteFirst":
+            dll.delete_first()
+        elif line[0] == "deleteLast":
+            dll.delete_last()
+
+    dll.print()
+
+if __name__ == "__main__":
+    _main()
+```
