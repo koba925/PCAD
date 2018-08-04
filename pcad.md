@@ -1156,3 +1156,124 @@ test()
 
 main()
 ```
+
+
+## [PCAD] 標準ライブラリ
+
+ここでちょっと問題はひとやすみ
+標準ライブラリでスタック、キュー、ベクタ、リストを使う方法が解説されてます
+
+Pythonではどうなるのかな
+
+### スタック
+
+C++のSTLには`size`、`top`、`push`、`pop`、`empty`といった関数が
+含まれている模様
+サンプルを見ると、`pop`は削除のみで値を取り出すのは`top`を使えってことかな
+何ていうんだっけ
+関数は副作用なしで値を返すだけ、副作用はコマンドでコマンドは値を返さない、みたいなの
+
+ググったらPythonチュートリアルで早速紹介されてるようだ
+ということは逆に言うとStackクラスみたいなのはないってことだなきっと
+
+> スタックの一番上に要素を追加するには append() を使います。スタックの一番上から要素を取り出すには pop() をインデクスを指定せずに使います。
+[5.1.1. リストをスタックとして使う](https://docs.python.jp/3/tutorial/datastructures.html#using-lists-as-stacks)
+
+あれ
+考えてみたら`append`って末尾にくっつけるやつだよな
+普通のリストだとO(n)になってしまうよな
+Pythonでリストって言ってるやつは双方向リストなのかな
+
+・・・
+ただの配列だった
+そうだったか
+確認してなかった
+
+そりゃ末尾に追加だな
+
+わざわざクラスで書くとこうかな
+
+```python3
+class Stack():
+
+    def __init__(self):
+        self.s = []
+
+    def top(self):
+        return self.s[-1]
+
+    def size(self):
+        return len(self.s)
+
+    def push(self, x):
+        self.s.append(x)
+
+    def pop(self):
+        return self.s.pop()
+
+    def empty(self):
+        return len(self.s) == 0
+```
+
+もう一度調べてみたら双方向キューを実装した`collections.deque`っていうのがある
+といってもスタックとして使うだけなら配列で十分
+
+`from collections import deque`して
+`self.s = []`を`self.s = deque()`にするだけで動くことは動く
+
+### キュー
+
+キューのクラスは書いたけど`collections.deque`で書き直してみよう
+`append`、`appendleft`、`pop`、`popleft`とあって先頭も末尾も
+自由にできるけど、左か右か、どっちを先頭とするべきかな
+
+```python3
+$ python3
+>>> from collections import deque
+>>> q = deque([1,2,3])
+>>> q
+deque([1, 2, 3])
+>>> q.popleft()
+1
+```
+
+`append`と`popleft`を使うのが素直そうな感じ
+
+```
+class Queue():
+
+    def __init__(self):
+        self.q = deque()
+
+    def size(self):
+        return len(self.q)
+
+    def front(self):
+        return self.q[0]
+
+    def push(self, x):
+        self.q.append(x)
+
+    def pop(self):
+        return self.q.popleft()
+
+    def empty(self):
+        return len(self.q) == 0
+```
+
+### ベクタ
+
+ベクタは単にpythonの配列だったことがさっき判明しました
+こんな感じの対応でいいっぽい（多少いいかげん）
+
+`v[1]`: `v[1]`
+`v.size()`:`len(v)`
+`v.push_back(x)`: `v.append(x)`
+`v.pop_back(x)`: `v.pop`
+`v.begin(),v.end()`: `iter(v)`
+`v.insert(p, x)`: `v.insert(p, x)`
+`v.erase()`: `v.clear()`
+
+### リスト
+
+dequeがそのまんまで足りてそう
