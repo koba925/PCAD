@@ -1157,7 +1157,6 @@ test()
 main()
 ```
 
-
 ## [PCAD] 標準ライブラリ
 
 ここでちょっと問題はひとやすみ
@@ -1239,7 +1238,7 @@ deque([1, 2, 3])
 
 `append`と`popleft`を使うのが素直そうな感じ
 
-```
+```python
 class Queue():
 
     def __init__(self):
@@ -1261,19 +1260,219 @@ class Queue():
         return len(self.q) == 0
 ```
 
+## [PCAD] 標準ライブラリ 続き
+
 ### ベクタ
 
-ベクタは単にpythonの配列だったことがさっき判明しました
-こんな感じの対応でいいっぽい（多少いいかげん）
+ベクタは単にpythonの配列だったことが判明しましたのでそのまま使います
+クラス作る必要はまったくないけど練習で
+おかげで`[]`がオーバーロード？できるようになってることを知るなど
 
-`v[1]`: `v[1]`
-`v.size()`:`len(v)`
-`v.push_back(x)`: `v.append(x)`
-`v.pop_back(x)`: `v.pop`
-`v.begin(),v.end()`: `iter(v)`
-`v.insert(p, x)`: `v.insert(p, x)`
-`v.erase()`: `v.clear()`
+```python
+class Vector():
+    def __init__(self):
+        self.v = []
+
+    # []によるアクセス
+    def __getitem__(self, i):
+        return self.v[i]
+
+    # 同上
+    def __setitem__(self, i, val):
+        self.v[i] = val
+
+    def size(self):
+        return len(self.v)
+
+    def push_back(self, x):
+        self.v.append(x)
+
+    def pop_back(self):
+        return self.v.pop()
+
+    # beginとendの代わり
+    def __iter__(self):
+        return iter(self.v)
+
+    # C++のvectorではイテレータで位置を指定するのでちょっと違う
+    def insert(self, p, x):
+        self.v.insert(p, x)
+
+    # 同上
+    def erase(self, p):
+        del self.v[p]
+
+    def clear(self):
+        self.v.clear()
+```
+
+型がちぇっくされないということはこういうこともできるかな
+
+```python
+class Foo():
+    def __init__(self, a):
+        self.a = a
+
+    def __getitem__(self, f):
+        return list(map(f, self.a))
+
+a = Foo([1, 2, 3])
+print(a[lambda x: x * 2]) # => [2, 4, 6]
+```
+
+できた（しない
+
+## [PCAD] 標準ライブラリ 続き2
 
 ### リスト
 
+STLで`list`っていったら双方向リストなんだ
+まあ配列をリストと呼ぶよりは納得できる
+
 dequeがそのまんまで足りてそう
+
+```python
+class List():
+    def __init__(self):
+        self.l = deque()
+
+    def size(self):
+        return len(self.l)
+
+    def __iter__(self):
+        return iter(self.l)
+
+    def push_front(self, x):
+        self.l.appendleft(x)
+
+    def push_back(self, x):
+        self.l.append(x)
+
+    def pop_front(self):
+        return self.l.popleft()
+
+    def pop_back(self):
+        return self.l.pop()
+
+    def insert(self, i, x):
+        self.l.insert(i, x)
+
+    # ない！
+    # def erase(self, i):
+
+    # 代わりに、指定した値の要素を消すのならある
+    def remove(self, x):
+        self.l.remove(x)
+
+    def clear(self):
+        self.l.clear()
+```
+
+と思ったら`erase`に対応した関数がなかった
+双方向リストなら途中の要素を消すのも簡単なはずだけど
+`deque`の中をいじれないとどうしようもない？
+
+## [PCAD] 書き直し
+
+標準のデータ構造でALDS1_3_A、ALDS1_3_B、ALDS1_3_Cを書き直しました
+すっきり
+
+ALDS1_3_A
+(pythonの)リストと`append`、`pop`を使いました
+
+```python
+#! /usr/local/bin/python3
+# coding: utf-8
+
+def stack_op2(s, op):
+    v2 = s.pop()
+    v1 = s.pop()
+    s.append(op(v1, v2))
+
+def calc(terms):
+    s = []
+    for t in terms:
+        if t == "+":
+            stack_op2(s, lambda v1, v2: v1 + v2)
+        elif t == "-":
+            stack_op2(s, lambda v1, v2: v1 - v2)
+        elif t == "*":
+            stack_op2(s, lambda v1, v2: v1 * v2)
+        else:
+            s.append(int(t))
+    return s.pop()
+
+print(calc(input().split()))
+```
+
+ALDS1_3_B
+
+`deque`で`appendleft`と`pop`を使いました
+
+```python
+#! /usr/local/bin/python3
+# coding: utf-8
+
+from collections import deque
+
+def main():
+    n, q = [int(x) for x in input().split()]
+
+    proc = deque()
+
+    for i in range(n):
+        name, ptime = input().split()
+        proc.appendleft((name, int(ptime)))
+
+    time = 0
+    while proc:
+        name, ptime = proc.pop()
+        time += min(q, ptime)
+        ptime -= min(q, ptime)
+        if ptime <= 0:
+            print(name, time)
+        else:
+            proc.appendleft((name, ptime))
+
+main()
+```
+
+ALDS1_3_C
+
+`deque`で`appendleft`、`remove`、`pop`、`popleft`を使いました
+`remove`は対象がないとExceptionなので無視してやる必要がありました
+
+```python
+#! /usr/local/bin/python3
+# coding: utf-8
+
+from sys import stdin
+from collections import deque
+
+def main():
+    n = int(input())
+    dll = deque()
+
+    for _ in range(n):
+        line = stdin.readline().split()
+        if line[0] == "insert":
+            dll.appendleft(int(line[1]))
+        elif line[0] == "delete":
+            try:
+                dll.remove(int(line[1]))
+            except ValueError:
+                None
+        elif line[0] == "deleteFirst":
+            dll.popleft()
+        elif line[0] == "deleteLast":
+            dll.pop()
+
+    print((" ".join(map(str, dll))))
+
+main()
+```
+
+200万件の実行結果 01.80 s
+ってめっちゃ速え！
+自前の双方向リストだと 04.98 s
+自分で書いちゃだめですね
