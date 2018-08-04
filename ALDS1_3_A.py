@@ -1,36 +1,22 @@
 #! /usr/local/bin/python3
 # coding: utf-8
 
-sp = 0
-stack = [0] * 100
-
-def stack_push(v):
-    global sp, stack
-    sp += 1
-    # print("push: sp =", sp, ", v =", v)
-    stack[sp] = v
-
-def stack_pop():
-    global sp, stack
-    # print("pop: sp =", sp, ", v =", stack[sp])
-    sp -= 1
-    return stack[sp + 1]
-
-def stack_op2(op):
-    v2 = stack_pop()
-    v1 = stack_pop()
-    stack_push(op(v1, v2))
+def stack_op2(s, op):
+    v2 = s.pop()
+    v1 = s.pop()
+    s.append(op(v1, v2))
 
 def calc(terms):
+    s = []
     for t in terms:
         if t == "+":
-            stack_op2(lambda v1, v2: v1 + v2)
+            stack_op2(s, lambda v1, v2: v1 + v2)
         elif t == "-":
-            stack_op2(lambda v1, v2: v1 - v2)
+            stack_op2(s, lambda v1, v2: v1 - v2)
         elif t == "*":
-            stack_op2(lambda v1, v2: v1 * v2)
+            stack_op2(s, lambda v1, v2: v1 * v2)
         else:
-            stack_push(int(t))
-    return(stack_pop())
+            s.append(int(t))
+    return s.pop()
 
 print(calc(input().split()))
