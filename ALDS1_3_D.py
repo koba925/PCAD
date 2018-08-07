@@ -11,43 +11,61 @@ def shape_to_slope(ch):
     else:
         return 1
 
-def land(height, h, x, delta):
-    while x in range(len(height)):
-        if height[x] >= h:
-            return True
-        x += delta
-    return False
+def pool_merge(pool_area, left_x, cur_area):
+    print("pool_merge: start")
+    if not pool_area:
+        return cur_area
+    while pool_area and (pool_area[-1])[0] > len(left_x):
+        print("pool_merge: merging")
+        cur_area += (pool_area.pop())[1]
+    return cur_area
 
-def depth_at_x(height, x, max_height, min_height):
-    for h in reversed(range(height[x], max_height + 1)):
-        if land(height, h, x, -1) and land(height, h, x, 1):
-            return h - height[x]
-    return 0
-
-def main():
-    shape = [ch for ch in input()]
+def calc(s):
+    shape = [ch for ch in s]
     slope = [shape_to_slope(ch) for ch in shape]
 
-    max_height = min_height = 0
-    height = [0]
-    for sl in slope:
-        height.append(height[-1] + sl)
-        max_height = max(height[-1], max_height)
-        min_height = min(height[-1], min_height)
-
-    prev_depth = 0
-    current_area = 0
+    left_x = []
+    cur_area = 0
     pool_area = []
- 
-    for x in range(1, len(height)):
-        depth = depth_at_x(height, x, max_height, min_height)
-        current_area += depth
-        if prev_depth > 0 and depth == 0:
-            pool_area.append(current_area)
-            current_area = 0
-        prev_depth = depth
-    
-    print(sum(pool_area))
-    print(len(pool_area), *pool_area)
+    for x, sl in enumerate(slope):
+        if sl == -1:
+            if cur_area > 0:
+                pool_area.append((len(left_x), cur_area))
+                cur_area = 0                
+            left_x.append(x)
+        elif left_x and sl == 1:
+            cur_area += x - left_x.pop()
+            cur_area = pool_merge(pool_area, left_x, cur_area)
+            if not left_x:
+                pool_area.append((len(left_x), cur_area))
+                cur_area = 0
+        print(x, ":", sl, left_x, cur_area, pool_area)
+    if cur_area > 0:
+        pool_area.append((len(left_x), cur_area))
+        print("-", ":", sl, left_x, cur_area, pool_area)
 
-main()
+    return [p[1] for p in pool_area]
+
+def test():
+    assert calc(r"\ ".strip()) == []
+    assert calc(r"/ ".strip()) == []
+    assert calc(r"\/ ".strip()) == [1]
+    assert calc(r"\_/ ".strip()) == [2]
+    assert calc(r"\// ".strip()) == [1]
+    assert calc(r"\\/ ".strip()) == [1]
+    assert calc(r"\\// ".strip()) == [4]
+    assert calc(r"\\//\\// ".strip()) == [4, 4]
+    assert calc(r"\\/\// ".strip()) == [7]
+    assert calc(r"\\/_\// ".strip()) == [8]
+    assert calc(r"\//\\/ ".strip()) == [1, 1]
+    assert calc(r"\//_\\/ ".strip()) == [1, 1]
+    assert calc(r"\//\\// ".strip()) == [1, 4]
+    assert calc(r"\///\\\// ".strip()) == [1, 4]
+    assert calc(r"\///\\\//\ ".strip()) == [1, 4]
+    exit()
+
+# test()
+
+pool_area = calc(input())
+print(sum(pool_area))
+print(len(pool_area), *pool_area)
