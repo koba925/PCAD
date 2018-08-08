@@ -1,9 +1,7 @@
 #! /usr/local/bin/python3
 # coding: utf-8
 
-def calc(s):
-    shape = [ch for ch in s]
-
+def calc(shape):
     left_x = []
     pool_area = []
     for x, sh in enumerate(shape):
