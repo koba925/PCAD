@@ -1476,3 +1476,275 @@ main()
 ってめっちゃ速え！
 自前の双方向リストだと 04.98 s
 自分で書いちゃだめですね
+
+## [PCAD] ALDS1_3_D
+
+> ※この問題はやや難しいチャレンジ問題です。難しいと感じたら今は飛ばして、実力をつけてから挑戦してみましょう。
+
+どこが難しいんだろう？
+水面の高さを覚えておいて、あと面積を足し算していくだけじゃない？
+今水たまりの中か外か覚えておいて場合分けは必要かな
+そもそもデータ構造らしきものも出てこないし・・・
+
+などと思った私があさはかでした
+
+そもそもデータ構造らしきものが出てこない時点でおかしいと思え
+
+左から見ていくだけでできると思ったんですけどね
+考えてみたら右側の岸が確定するまで水面の高さ出ませんね
+
+しばらくがんばって考えましたが、データ構造っぽいものが出てくるやり方は
+思いつかなかったのでまずは力技でやってみました
+
+まずは地形まで求めたあと、すべてのx座標(左右)について、一番高いところの高さから
+1ずつ下がりつつ、左右に岸のある高さを探して水面を求める、という方式
+横方向にループして、高さ方向にループして、また横方向にループするからO(n^3 )かな
+
+あ、面積はマジメに台形の計算とかしてないです
+幅1なので深さを単純に足し算すれば面積に
+
+```python
+#! /usr/local/bin/python3
+# coding: utf-8
+
+from operator import add
+
+def shape_to_slope(ch):
+    if ch == "\\":
+        return -1
+    elif ch == "_":
+        return 0
+    else:
+        return 1
+
+def land(height, h, x, delta):
+    while x in range(len(height)):
+        if height[x] >= h:
+            return True
+        x += delta
+    return False
+
+def depth_at_x(height, x, max_height, min_height):
+    for h in reversed(range(height[x], max_height + 1)):
+        if land(height, h, x, -1) and land(height, h, x, 1):
+            return h - height[x]
+    return 0
+
+def main():
+    shape = [ch for ch in input()]
+    slope = [shape_to_slope(ch) for ch in shape]
+
+    max_height = min_height = 0
+    height = [0]
+    for sl in slope:
+        height.append(height[-1] + sl)
+        max_height = max(height[-1], max_height)
+        min_height = min(height[-1], min_height)
+
+    prev_depth = 0
+    current_area = 0
+    pool_area = []
+
+    for x in range(1, len(height)):
+        depth = depth_at_x(height, x, max_height, min_height)
+        current_area += depth
+        if prev_depth > 0 and depth == 0:
+            pool_area.append(current_area)
+            current_area = 0
+        prev_depth = depth
+
+    print(sum(pool_area))
+    print(len(pool_area), *pool_area)
+
+main()
+```
+
+はいはいTLETLE
+400文字でTLEだけど20,000文字まである
+O(n^2 )でもダメかも？
+
+しかしスタックだかキューだかリストだか知らんけど
+どうやって使うんだ？
+
+解説見るか・・・
+うーん
+もうちょっと考えよう
+
+## [PCAD] ALDS1_3_D 続き
+
+さて
+
+> しかしスタックだかキューだかリストだか知らんけど
+
+使うとしたらスタックかなあ
+何を積むか
+計算量を増やさないようにするには、左から順番に１回見るだけで終わらないといけなさそう
+
+深くなっていく間はなにか積んでおいて、浅くなるときに取り出す感じ？
+何を積む？
+深さ？x座標？両方？
+両方いるような気もするけど、スタックをたとえば深さごとに用意するのでは
+計算量が増えてしまう
+
+そうか、深くなるのも浅くなるのも１刻みだから深さは覚えておかなくても？
+右へ進みつつ、深くなるときx座標だけをpush、浅くなるときにpopしていくと
+スタックの一番上にはいつも同じ深さの左側の底のx座標があるということ？
+
+スタックが空なら水たまりが終わりってことになるな
+なんかいけそう
+
+コードはほとんど書き直しか
+
+```python
+def main():
+    shape = [ch for ch in input()]
+    slope = [shape_to_slope(ch) for ch in shape]
+
+    left_x = []
+    cur_area = 0
+    pool_area = []
+    for x, sl in enumerate(slope):
+        if sl == -1:
+            left_x.append(x)
+        elif left_x and sl == 1:
+            cur_area += x - left_x.pop() 
+            if not left_x:
+                pool_area.append(cur_area)
+                cur_area = 0
+
+    print(sum(pool_area))
+    print(len(pool_area), *pool_area)
+```
+
+これでいけるかと思ったけどダメ
+水たまりの終わりの判定条件がおかしい
+スタックが空にならなくても水たまりが終わることがある
+
+## [PCAD] ALDS1_3_D 続きの続き
+
+> スタックが空にならなくても水たまりが終わることがある
+
+浅くなってきてた水たまりが深くなったらいったん水たまりが終わったことに
+するけれども、右側の底がもっと高くなったら「飲み込まれる」ような動きがいる
+
+と思って作り込んだのがこれ
+
+```python
+def pool_merge(pool_area, left_x, cur_area):
+    if not pool_area:
+        return cur_area
+    while pool_area and (pool_area[-1])[0] > len(left_x):
+        cur_area += (pool_area.pop())[1]
+    return cur_area
+
+def calc(s):
+    shape = [ch for ch in s]
+    slope = [shape_to_slope(ch) for ch in shape]
+
+    left_x = []
+    cur_area = 0
+    pool_area = []
+    for x, sl in enumerate(slope):
+        if sl == -1:
+            if cur_area > 0:
+                pool_area.append((len(left_x), cur_area))
+                cur_area = 0
+            left_x.append(x)
+        elif left_x and sl == 1:
+            cur_area += x - left_x.pop()
+            cur_area = pool_merge(pool_area, left_x, cur_area)
+            if not left_x:
+                pool_area.append((len(left_x), cur_area))
+                cur_area = 0
+    if cur_area > 0:
+        pool_area.append((len(left_x), cur_area))
+
+    return [p[1] for p in pool_area]
+
+pool_area = calc(input())
+print(sum(pool_area))
+print(len(pool_area), *pool_area)
+```
+
+そろそろ頭が死にそうなんだけれども、まだ漏れがある
+
+はずなんだけどAC
+（50番のテストが"--"ってなってるんだけどAC）
+
+ていうかね
+自分でまだうまくいかないはずっていうテストケースがうまくいってしまう
+意味わからないんですけど
+`\///\\\//`はうまくいかないはずなんですよ！
+まんなかに山があっても飲み込んでしまうはずなの！
+まんなかに山があるとか考慮してないんだから！
+水たまり以外のことは忘れてしまうんだから！
+なんで成功してるの！
+
+：
+：
+
+そうか
+実際の標高じゃなくて、スタックの深さでやってるからか
+山があるってことはスタックが空になってるってことで
+その時点で深さ０ってことになるから金輪際飲み込まれることはないってわけか
+
+いや難しすぎる
+漏れがないとかまったく保証できる気がしない
+AC取ったし解説読む
+
+## [PCAD] ALDS1_3_D 続きの続きの続き
+
+> AC取ったし解説読む
+
+ざっくり方針は同じかな
+データ構造の章に出てるっていうのがヒントになったし
+
+> この問題の解法として、ソートアルゴリズムを応用するなど、いくつかのアルゴリズムが考えられますが
+
+ふーん
+どんなんだ
+ちょっとぱっとは思いつかないな
+「応用」だからただソートするわけじゃないんだろうな
+
+> 各水たまりの面積はもう１つのスタックS2を用いて保存していきます。
+
+ここは同じ作戦だ
+
+> スタックS2には、(その水たまりの最も左の\の位置, その水たまりのその時点での面積)の組を積んでいきます。
+
+自分は「その水たまりの最も左の\の位置」じゃなくてその時点でのスタックの深さを積んでた
+\の位置を覚えておいてどう使うのかな
+
+> ここで、新たにできる水たまりの面積は、S2に積まれているjの直前までの水たまりの面積の総和と、新しくできる面積i-jの和になります。
+
+jが・・・
+・・・
+
+そうか
+左の岸より右にある水たまりが飲み込まれるのか
+図を見たら当たり前だった
+
+ソース見る
+違うところ以外はかなり似てた（当たり前か
+
+```python
+def calc(shape):
+    left_x = []
+    pool_area = []
+    for x, sh in enumerate(shape):
+        if sh == "\\":
+            left_x.append(x)
+        elif left_x and sh == "/":
+            lx = left_x.pop()
+            area = x - lx
+            while pool_area and (pool_area[-1])[0] > lx:
+                area += (pool_area.pop())[1]
+            pool_area.append((lx, area))
+        # print(x, ":", sh, left_x, pool_area)
+
+    return [p[1] for p in pool_area]
+
+pool_area = calc(input())
+print(sum(pool_area))
+print(len(pool_area), *pool_area)
+```
