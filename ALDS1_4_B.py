@@ -2,15 +2,15 @@
 # coding: utf-8
 
 def search(S, y):
-    left = 0; right = len(S) - 1
-    while left <= right:
+    left = 0; right = len(S)
+    while left < right:
         mid = (left + right) // 2
-        if S[mid] == y: 
+        if S[mid] == y:
             return True
         if S[mid] < y:
             left = mid + 1
         else:
-            right = mid - 1
+            right = mid
     return False
 
 def count(S, T):
