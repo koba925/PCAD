@@ -10,9 +10,10 @@ class HashTable():
         self.table = [[] for _ in range(size)]
     
     def hash(self, s):
-        m = md5()
-        m.update(s.encode())
-        return int.from_bytes(m.digest(), "big") % self.size
+        h = 1
+        for c in s:
+            h = (h * 9997 + ord(c)) % self.size
+        return h
     
     def insert(self, s):
         e = self.table[self.hash(s)]
@@ -61,7 +62,7 @@ def main():
     h = HashTable(100000)
     _ = int(input())
     for l in stdin:
-        # print(l)
+        #print(l)
         cmd, param = l.split()
         if cmd == "insert":
             h.insert(param)
