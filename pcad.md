@@ -1748,3 +1748,121 @@ pool_area = calc(input())
 print(sum(pool_area))
 print(len(pool_area), *pool_area)
 ```
+
+## [PCAD] ALDS1_4_A: Linear Search
+
+ひとつめの数列の中に、ふたつめの数列に含まれる要素がいくつあるかを数える
+線形探索って書いてあるからソートはなし？
+要素数が10000個とか500個とかだから単純に二重ループでやればいいのかな
+
+お、こんなデータがある
+ループの順番に気をつけて
+
+```text
+5
+1 1 2 2 3
+2
+1 2
+```
+
+それくらいでずいぶん簡単に見えるけど落とし穴はないかな
+AC
+なかったみたい
+
+```python
+#! /usr/local/bin/python3
+# coding: utf-8
+
+def count(s, t):
+    c = 0
+    for x in t:
+        for y in s:
+            if x == y:
+                c += 1
+                break
+    return c
+
+_ = int(input())
+s = [int(x) for x in input().split()]
+
+_ = int(input())
+t = [int(x) for x in input().split()]
+
+print(count(s, t))
+```
+
+解説を読む
+あー番兵ね
+番兵を入れると定数倍の高速化が期待できるそうな
+
+とは言っても`for ... in ...`で書いてると番兵が置けないので
+カウンタ入れてやってみよう
+上のコードだと#9のテストに00.03sかかってます
+
+番兵なしだとこう書くのかな
+考えてみたら外側は`for ... in ...`でもいいんだけど
+
+```python
+#! /usr/local/bin/python3
+# coding: utf-8
+
+def count(n, s, q, t):
+    c = 0
+    i = 0
+    while i < q:
+        j = 0
+        ti = t[i]
+        while j < n:
+            if s[j] == ti:
+                c += 1
+                break
+            j += 1
+        i += 1
+    return c
+
+n = int(input())
+s = [int(x) for x in input().split()]
+
+q = int(input())
+t = [int(x) for x in input().split()]
+
+print(count(n, s, q, t))
+```
+
+これだと00.06s
+
+番兵ありだと
+
+```python
+#! /usr/local/bin/python3
+# coding: utf-8
+
+def count(n, s, q, t):
+    c = 0
+    i = 0
+    s.append(0)
+    while i < q:
+        j = 0
+        s[n] = t[i]
+        ti = t[i]
+        while s[j] != ti:
+            j += 1
+        if j < n:
+            c += 1
+        i += 1
+    return c
+
+n = int(input())
+s = [int(x) for x in input().split()]
+
+q = int(input())
+t = [int(x) for x in input().split()]
+
+print(count(n, s, q, t))
+```
+
+00.05s
+
+速くなったと言えば速くなったけど誤差の範囲かもしれない
+もうちょっと速くなってもいい気がしたけど
+なんにせよpythonでは普通に`for ... in ...`で書こう
