@@ -1607,7 +1607,7 @@ def main():
         if sl == -1:
             left_x.append(x)
         elif left_x and sl == 1:
-            cur_area += x - left_x.pop() 
+            cur_area += x - left_x.pop()
             if not left_x:
                 pool_area.append(cur_area)
                 cur_area = 0
@@ -1866,3 +1866,67 @@ print(count(n, s, q, t))
 速くなったと言えば速くなったけど誤差の範囲かもしれない
 もうちょっと速くなってもいい気がしたけど
 なんにせよpythonでは普通に`for ... in ...`で書こう
+
+## [PCAD] ALDS1_4_B: Binary Search
+
+今度は二分探索
+ふたつに分けながら探すっていうことだけ覚えてる
+1足したり引いたり終了の判定したりあたりの細かいことは書きながら考える
+
+番兵は・・・いないよね？
+
+```python
+#! /usr/local/bin/python3
+# coding: utf-8
+
+def search(S, y):
+    left = 0; right = len(S) - 1
+    while left <= right:
+        mid = (left + right) // 2
+        if S[mid] == y: 
+            return True
+        if S[mid] < y:
+            left = mid + 1
+        else:
+            right = mid - 1
+    return False
+
+def count(S, T):
+    c = 0
+    for y in T:
+        if search(S, y):
+            c += 1
+    return c
+
+_ = int(input())
+S = [int(x) for x in input().split()]
+
+_ = int(input())
+T = [int(y) for y in input().split()]
+
+print(count(S, T))
+```
+
+AC
+
+解説を見る
+
+1足したり引いたり終了の判定したりあたりの細かいことが違うな
+いや、rightが右端「の次」を指してるってことを考えると意味は同じか
+（自分は右端を指しているつもりで書いた）
+右端の次を指すって考えたほうが筋がよさそうな気はする
+微妙に足し算も減るし
+
+```
+def search(S, y):
+    left = 0; right = len(S)
+    while left < right:
+        mid = (left + right) // 2
+        if S[mid] == y:
+            return True
+        if S[mid] < y:
+            left = mid + 1
+        else:
+            right = mid
+    return False
+```
