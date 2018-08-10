@@ -1883,7 +1883,7 @@ def search(S, y):
     left = 0; right = len(S) - 1
     while left <= right:
         mid = (left + right) // 2
-        if S[mid] == y: 
+        if S[mid] == y:
             return True
         if S[mid] < y:
             left = mid + 1
@@ -1917,7 +1917,7 @@ AC
 右端の次を指すって考えたほうが筋がよさそうな気はする
 微妙に足し算も減るし
 
-```
+```python3
 def search(S, y):
     left = 0; right = len(S)
     while left < right:
