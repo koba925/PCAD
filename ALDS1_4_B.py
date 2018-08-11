@@ -1,17 +1,11 @@
 #! /usr/local/bin/python3
 # coding: utf-8
 
+from bisect import bisect_left
+
 def search(S, y):
-    left = 0; right = len(S)
-    while left < right:
-        mid = (left + right) // 2
-        if S[mid] == y:
-            return True
-        if S[mid] < y:
-            left = mid + 1
-        else:
-            right = mid
-    return False
+    pos = bisect_left(S, y)
+    return S[pos] == y
 
 def count(S, T):
     c = 0
