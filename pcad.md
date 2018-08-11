@@ -1930,3 +1930,172 @@ def search(S, y):
             right = mid
     return False
 ```
+
+## [PCAD] ALDS1_4_C: Dictionary
+
+「簡易的な」辞書って書いてあるけど、ただ配列にいれるだけじゃダメなんだろうね
+100,000個で2secって書いてあるし
+問題の並びや前にあった解説から空気を読んで配列に入れてハッシュ法でやることにする
+
+4文字の組み合わせで長さが12までだから木を作ってもいいような気もするけど
+配列で順序キープしながらだと間に合わないかな
+
+さてハッシュ法と言えばハッシュ関数を使って要素の場所を探す、くらいしか
+覚えてないわけだが
+
+* ハッシュ用の関数ってどうするものなんだろう 自分で作るのか？
+* テーブルの大きさはどれくらいがいいんだろう？
+* ハッシュ値が重なったときはどうするんだっけ
+
+まあやってみよう
+
+ハッシュ関数はmd5を流用してみた
+サイズは適当
+重なってもいいようにリストで持つ
+
+```python
+#! /usr/local/bin/python3
+# coding: utf-8
+
+from hashlib import md5
+
+class HashTable():
+
+    def __init__(self, size):
+        self.size = size
+        self.table = [[] for _ in range(size)]
+
+    def hash(self, s):
+        h = 1
+        for c in s:
+            h = (h * 9997 + ord(c)) % self.size
+        return h
+
+    def insert(self, s):
+        e = self.table[self.hash(s)]
+        if s not in self.table[self.hash(s)]:
+            e.append(s)
+
+    def find(self, s):
+        return s in self.table[self.hash(s)]
+
+from sys import stdin
+
+def main():
+    h = HashTable(1000000)
+    _ = int(input())
+    for l in stdin:
+        cmd, param = l.split()
+        if cmd == "insert":
+            h.insert(param)
+        elif h.find(param):
+            print("yes")
+        else:
+            print("no")
+
+main()
+```
+
+ACだけど04.98sですが何か
+サイズを1000000にしたら遅くなった 05.23 s
+サイズを10000にしても遅かった 05.28 s
+
+md5に時間がかかるのかなあ
+自分で書いてみよう
+適当
+
+```python
+    def hash(self, s):
+        h = 1
+        for c in s:
+            h = (h * 9997 + ord(c)) % self.size
+        return h
+```
+
+04.99 s
+うーん
+2secっていうのはC++用の時間？
+
+もう解説でいいや
+どれどれ
+
+ふーんダブルハッシュを用いたオープンアドレス法、か
+ハッシュ関数はそんなに凝った感じじゃないな
+そんなにバラけなくてもいいってことかな
+
+A,C,G,Tを1,2,3,4に変換してるのって意味あるんだっけ
+そのままコード使ってもいい気がするけど
+あ、1〜4だからハッシュを求めるとき5をかけてるわけか なるほど
+文字列が短い順にキレイに埋まっていきそう
+1〜4に変換するより26文字対応にしようかな
+
+```python
+class HashTable():
+
+    M = 1046527
+
+    def __init__(self):
+        self.table = [False] * HashTable.M
+
+    def h1(self, k):
+        return k % HashTable.M
+
+    def h2(self, k):
+        return 1 + (k % (HashTable.M - 1))
+
+    CHAR_BEGIN = ord("A") - 1
+    CHAR_CYCLE = ord("C") - ord("A") + 1
+
+    def key(self, s):
+        k = 0; p = 1
+        for c in s:
+            k += (ord(c) - HashTable.CHAR_BEGIN) * p
+            p *= HashTable.CHAR_CYCLE
+        return k
+
+    def find(self, s):
+        k = self.key(s)
+        h = self.h1(k)
+        d = self.h2(k)
+        while True:
+            if self.table[h] == s:
+                return True
+            elif not self.table[h]:
+                return False
+            h = (h + d) % HashTable.M
+
+    def insert(self, s):
+        k = self.key(s)
+        h = self.h1(k)
+        d = self.h2(k)
+        while True:
+            if self.table[h] == s:
+                return
+            elif not self.table[h]:
+                self.table[h] = s
+                return
+            h = (h + d) % HashTable.M
+```
+
+05.17s
+
+すみません遅くなりました
+
+C++の`for (i = 0; ; i++)`を翻訳しようとして気づいたんだけど
+`range`で終わりのない数列を指定する方法ってない？
+他の関数があるんだろうか
+こういうのでいいんだけど
+
+```python
+def iota(start):
+    i = start
+    while True:
+        yield i
+        i += 1
+```
+
+結局使ってないわけですが
+
+ところでいま世の中で言う「ハッシュ」は別にここで出てくるハッシュ法とは
+関係ないそうですね
+てっきりアルゴリズムからついた名前かと思ってました
