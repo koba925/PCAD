@@ -37,4 +37,15 @@ def iter_sample():
 
     print_it(v3)
 
-iter_sample()
+import bisect
+
+def lower_bound():
+    A = [1, 1, 2, 2, 2, 4, 5, 5, 6, 8, 8, 8, 10, 15]
+    pos = bisect.bisect_left(A, 3)
+    print("A[%s] = %d" % (pos, A[pos]))
+    pos = bisect.bisect_left(A, 2)
+    print("A[%s] = %d" % (pos, A[pos]))
+
+# iter_sample()
+lower_bound()
+
