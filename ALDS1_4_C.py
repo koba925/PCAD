@@ -1,71 +1,70 @@
 #! /usr/local/bin/python3
 # coding: utf-8
 
-from hashlib import md5
-
 class HashTable():
 
-    def __init__(self, size):
-        self.size = size
-        self.table = [[] for _ in range(size)]
-    
-    def hash(self, s):
-        h = 1
+    M = 1046527
+
+    def __init__(self):
+        self.table = [False] * HashTable.M
+
+    def h1(self, k):
+        return k % HashTable.M
+
+    def h2(self, k):
+        return 1 + (k % (HashTable.M - 1))
+
+    CHAR_BEGIN = ord("A") - 1
+    CHAR_CYCLE = ord("C") - ord("A") + 1
+
+    def key(self, s):
+        k = 0; p = 1
         for c in s:
-            h = (h * 9997 + ord(c)) % self.size
-        return h
-    
-    def insert(self, s):
-        e = self.table[self.hash(s)]
-        if s not in self.table[self.hash(s)]:
-            e.append(s)
+            k += (ord(c) - HashTable.CHAR_BEGIN) * p
+            p *= HashTable.CHAR_CYCLE
+        return k
 
     def find(self, s):
-        return s in self.table[self.hash(s)]
-    
-    def print(self):
-        print(self.size)
-        print(self.table)
+        k = self.key(s)
+        h = self.h1(k)
+        d = self.h2(k)
+        while True:
+            if self.table[h] == s:
+                return True
+            elif not self.table[h]:
+                return False
+            h = (h + d) % HashTable.M
 
-def test():
-    h = HashTable(5); h.print()
-    assert(not h.find("A"))
-    assert(not h.find("B"))
-    assert(not h.find("C"))
+    def insert(self, s):
+        k = self.key(s)
+        h = self.h1(k)
+        d = self.h2(k)
+        while True:
+            if self.table[h] == s:
+                return
+            elif not self.table[h]:
+                self.table[h] = s
+                return
+            h = (h + d) % HashTable.M
 
-    h.insert("A"); h.print()
-    assert(h.find("A"))
-    assert(not h.find("B"))
-    assert(not h.find("C"))
+    def keys(self, str):
+        k = self.key(str)
+        return str, k, self.h1(k), self.h2(k)
 
-    h.insert("A"); h.print()
-    assert(h.find("A"))
-    assert(not h.find("B"))
-    assert(not h.find("C"))
-
-    h.insert("B"); h.print()
-    assert(h.find("A"))
-    assert(h.find("B"))
-    assert(not h.find("C"))
-
-    h.insert("C"); h.print()
-    assert(h.find("A"))
-    assert(h.find("B"))
-    assert(h.find("C"))
-
-# test()
-# exit()
+    def items(self):
+        return [x for x in self.table if x]
 
 from sys import stdin
 
 def main():
-    h = HashTable(100000)
+    h = HashTable()
     _ = int(input())
     for l in stdin:
         #print(l)
         cmd, param = l.split()
         if cmd == "insert":
             h.insert(param)
+            # print(h.items())
         elif h.find(param):
             print("yes")
         else:
