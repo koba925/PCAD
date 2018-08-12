@@ -2099,3 +2099,91 @@ def iota(start):
 ところでいま世の中で言う「ハッシュ」は別にここで出てくるハッシュ法とは
 関係ないそうですね
 てっきりアルゴリズムからついた名前かと思ってました
+
+## [PCAD] 標準ライブラリによる検索
+
+### イテレータ
+
+イテレータってforとかで使ってるくらいで素では使ったことないな
+たぶん普通は素で使うことはないんだろう
+
+C++と見比べてみると
+
+C++ではend()と比較して、PythonではStopIteration例外を補足する
+これは前も見た
+
+サンプルの`print()`をできるだけ直訳するとこんな感じだろうか
+
+```python
+def print_it(v):
+    it = iter(v)
+    while True:
+        try:
+            print(next(it), end="")
+        except StopIteration:
+            break
+    print()
+```
+
+あと、Pythonではイテレータの指す場所の値を更新することはできないのかな
+イミュータブルっぽく使えってことだと理解しておく
+
+しかしサンプルをpython化しようとするとこんな
+
+```python
+it = iter(v)
+v2 = []
+next(it)
+v2.append(3)
+v2.append(next(it) + 1)
+v2.append(next(it))
+v2.append(next(it))
+```
+
+とかこんな
+
+```python
+it = iter(v)
+v3 = []
+for i, x in enumerate(v):
+    if i == 0:
+        v3.append(3)
+    elif i == 1:
+        v3.append(x + 1)
+    else:
+        v3.append(x)
+```
+
+でちょっとブサイクな気もする
+
+### 二分探索
+
+pythonでは[bisect](https://docs.python.org/3.6/library/bisect.html)というライブラリが使えそう
+二分探索とはいうものの、値をみつけるというよりもソートされた状態を
+保ったまま新しい要素を挿入するための場所を探すというのが目的な模様
+これを使えば高速な挿入ソートができるというわけかな
+
+C++ではイテレータを返すけどPythonでは単にリストのインデックスを返すので
+使い方はこんな感じ
+
+```python
+A = [1, 1, 2, 2, 2, 4, 5, 5, 6, 8, 8, 8, 10, 15]
+pos = bisect.bisect_left(A, 3)
+print("A[%s] = %d" % (pos, A[pos]))
+pos = bisect.bisect_left(A, 2)
+print("A[%s] = %d" % (pos, A[pos]))
+```
+
+普通に値を見つけたいときの使い方も書いてあった
+[8.6.1. Searching Sorted Lists](https://docs.python.org/3.6/library/bisect.html#searching-sorted-lists)
+
+ALDS1_4_Bの`search`がこうなる
+
+```python
+def search(S, y):
+    pos = bisect_left(S, y)
+    return S[pos] == y
+```
+
+#10 が 00.09s秒
+元のソースだと00.25sだから速くなってる
