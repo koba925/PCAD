@@ -22,7 +22,6 @@ def main():
     w = [int(x) for x in stdin]
     min_P = max(max(w), floor(sum(w) / k))
     max_P = sum(w)
-    print(min_P, max_P)
  
     while min_P < max_P:
         mid_P = (min_P + max_P) // 2
@@ -30,7 +29,6 @@ def main():
             max_P = mid_P
         else:
             min_P = mid_P + 1
-        # print(min_P, mid_P, max_P)
     
     print(min_P)
 
