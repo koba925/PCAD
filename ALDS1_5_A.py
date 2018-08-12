@@ -1,35 +1,36 @@
 #! /usr/local/bin/python3
 # coding: utf-8
 
-def can_make_sum(A, m):
+def can_make_sum(A, k, m):
+    #print(A, k, m)
     if m == 0:
         return True
-    elif m < 0 or not A:
+    elif m < 0 or k == len(A):
         return False
     else: 
-        return (can_make_sum(A[1:], m - A[0]) or
-                can_make_sum(A[1:], m))
+        return (can_make_sum(A, k + 1, m - A[k]) or
+                can_make_sum(A, k + 1, m))
 
 def solve():
-    n = int(input())
+    _ = int(input())
     A = [int(x) for x in input().split()]
-    q = int(input())
+    _ = int(input())
     M = [int(x) for x in input().split()]
 
     for m in M:
-        print("yes" if can_make_sum(A, m) else "no")
+        print("yes" if can_make_sum(A, 0, m) else "no")
 
 def test():
-    assert can_make_sum([1, 3, 7], 1)
-    assert can_make_sum([1, 3, 7], 3)
-    assert can_make_sum([1, 3, 7], 7)
-    assert can_make_sum([1, 3, 7], 4)
-    assert can_make_sum([1, 3, 7], 8)
-    assert can_make_sum([1, 3, 7], 10)
-    assert can_make_sum([1, 3, 7], 11)
-    assert not can_make_sum([1, 3, 7], 2)
-    assert not can_make_sum([1, 3, 7], 5)
-    assert not can_make_sum([1, 3, 7], 12)
+    assert can_make_sum([1, 3, 7], 0, 1)
+    assert can_make_sum([1, 3, 7], 0, 3)
+    assert can_make_sum([1, 3, 7], 0, 7)
+    assert can_make_sum([1, 3, 7], 0, 4)
+    assert can_make_sum([1, 3, 7], 0, 8)
+    assert can_make_sum([1, 3, 7], 0, 10)
+    assert can_make_sum([1, 3, 7], 0, 11)
+    assert not can_make_sum([1, 3, 7], 0, 2)
+    assert not can_make_sum([1, 3, 7], 0, 5)
+    assert not can_make_sum([1, 3, 7], 0, 12)
 
 # test()
 # exit()
