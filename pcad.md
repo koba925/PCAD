@@ -2299,3 +2299,212 @@ def main():
 手頃なところで試してみたところ
 上のソースでは21回、0と100000*100000で34回
 誤差と言えば誤差かな
+
+## [PCAD] ALDS1_5_A: Exhaustive Search
+
+章が「再帰・分割統治法」でセクションが「全探索」なんだけど
+n重ループみたいな単純な全探索じゃないといけないんだろうか
+普通に書くと再帰になってしまいそう
+再帰を使って全部試せば全探索？
+
+・・・絵からして再帰でよさそうだな
+
+```python
+def can_make_sum(A, m):
+    if m == 0:
+        return True
+    elif m < 0 or not A:
+        return False
+    else:
+        return (can_make_sum(A[1:], m - A[0]) or
+                can_make_sum(A[1:], m))
+
+def solve():
+    n = int(input())
+    A = [int(x) for x in input().split()]
+    q = int(input())
+    M = [int(x) for x in input().split()]
+
+    for m in M:
+        print("yes" if can_make_sum(A, m) else "no")
+
+solve()
+```
+
+あらTLE
+\#10で41.99s
+
+配列がコピーになってるからかな？
+
+``` python
+def can_make_sum(A, k, m):
+    if m == 0:
+        return True
+    elif m < 0 or k == len(A):
+        return False
+    else:
+        return (can_make_sum(A, k + 1, m - A[k]) or
+                can_make_sum(A, k + 1, m))
+```
+
+やっぱり41.99s
+42秒制限なのか
+
+適当なデータ使ってローカルで時間を測ってみる
+さっきの
+
+```text
+time ALDS1_5_A.py  < in.txt
+no
+no
+:
+real    0m6.349s
+user    0m6.312s
+sys     0m0.020s
+```
+
+今回の
+
+```text
+time ALDS1_5_A.py  < in.txt
+no
+no
+:
+real    0m5.879s
+user    0m5.857s
+sys     0m0.015s
+```
+
+速くなった
+でもまだTLE
+
+あと何が速くなるかな
+`A`を渡すことをやめてみるか
+速くなるのか？
+
+```python
+def solve():
+
+    def can_make_sum(k, m):
+        if m == 0:
+            return True
+        elif m < 0 or k == n:
+            return False
+        else: 
+            return (can_make_sum(k + 1, m - A[k]) or
+                    can_make_sum(k + 1, m))
+
+    n = int(input())
+    A = [int(x) for x in input().split()]
+    _ = int(input())
+    M = [int(x) for x in input().split()]
+
+    for m in M:
+        print("yes" if can_make_sum(0, m) else "no")
+```
+
+なった
+
+```text
+real    0m4.824s
+user    0m4.805s
+sys     0m0.014s
+```
+
+でもTLE
+劇的に速くならないとだめかなー
+ちょっと反則してみよ
+
+```python
+from itertools import combinations
+
+def solve():
+
+    def can_make_sum(m):
+        for l in range(len(A)):
+            for c in combinations(A, l):
+                if sum(c) == m:
+                    return True
+        return False
+
+    _ = int(input())
+    A = [int(x) for x in input().split()]
+    _ = int(input())
+    M = [int(x) for x in input().split()]
+
+    for m in M:         
+        print("yes" if can_make_sum(m) else "no")
+
+solve()
+```
+
+速くなった
+
+```text
+real    0m3.383s
+user    0m3.322s
+sys     0m0.026s
+```
+
+でもTLE
+
+枝刈り？すれば速くなりそうな気もするけど「全探索」だしなあ
+メモ化した
+
+```python
+def solve():
+    def can_make_sum(k, m):
+        def cmi(k, m):
+            if m == 0:
+                return True
+            elif m < 0 or k == n:
+                return False
+            else: 
+                return (can_make_sum(k + 1, m - A[k]) or
+                        can_make_sum(k + 1, m))
+
+        if (k, m) not in cache:
+            cache[(k, m)] = cmi(k, m)
+        return cache[(k, m)]
+
+    cache = {}
+    n = int(input())
+    A = [int(x) for x in input().split()]
+    _ = int(input())
+    M = [int(x) for x in input().split()]
+
+    for m in M:
+        print("yes" if can_make_sum(0, m) else "no")
+
+solve()
+```
+
+さて
+
+```text
+real    0m0.112s
+user    0m0.085s
+sys     0m0.014s
+```
+
+一瞬
+メモ化すげー
+というのは知ってたけどいいのかこれで
+まあ全探索はしてるし
+
+今度は余裕でAC
+メモリはどうなの
+さっきのが5624KB
+メモ化して9252KB
+4MB程度なのか
+それくらいならいいのかな
+
+解説・サンプルコードは素直な再帰だった
+他の人はどうやってんのと思ってSolutionsを見てみたら
+ビット演算を使った劇的に速いアルゴリズムがあった
+なんでこれで？と思うような超短いコードだったけどよく考えたら確かに
+なるほど勉強になるなー
+
+ところでAOJならこうやってAC出るまでちょっとずつ改善していけばいいけど
+Paizaだと一回失敗したらリカバリできないからなあ
+そこがつらい
