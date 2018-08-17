@@ -2508,3 +2508,101 @@ sys     0m0.014s
 ところでAOJならこうやってAC出るまでちょっとずつ改善していけばいいけど
 Paizaだと一回失敗したらリカバリできないからなあ
 そこがつらい
+
+## [PCAD] ALDS1_5_C:Koch Curve
+
+まずは自力で２次元ベクトルのクラスを作ってみる
+正三角形の頂点を求めるのには三角関数でいいのかな？
+
+add, sub, scaleを演算子のオーバーロードで書いてみるテスト
+この問題が解ける最低限で
+
+```python
+from math import pi, sin, cos
+
+class Point2D():
+
+    def __init__(self, x, y):
+        self.x = x
+        self.y = y
+
+    def __add__(self, p):
+        return Point2D(self.x + p.x, self.y + p.y)
+
+    def __sub__(self, p):
+        return Point2D(self.x - p.x, self.y - p.y)
+
+    def __rmul__(self, a):
+        if isinstance(a, float):
+            return Point2D(self.x * a, self.y * a)
+        else:
+            return NotImplemented
+    
+    def rotate(self, theta):
+        return Point2D(self.x * cos(theta) - self.y * sin(theta),
+                       self.x * sin(theta) + self.y * cos(theta))
+
+    def __str__(self):
+        return "{} {}".format(self.x, self.y)
+
+def koch(p1, p2, level):
+    if level == 0:
+        return
+    l = p2 - p1
+    s = p1 + (1/3) * l
+    t = p1 + (2/3) * l
+    u = s + (1/3) * l.rotate(pi/3)
+    koch(p1, s, level - 1)
+    print(s)
+    koch(s, u, level - 1)
+    print(u)
+    koch(u, t, level - 1)
+    print(t)
+    koch(t, p2, level - 1)
+
+def main():
+    n = int(input())
+    print(Point2D(0.0, 0.0))
+    koch(Point2D(0.0, 0.0), Point2D(100.0, 0.0), n)
+    print(Point2D(100.0, 0.0))
+
+main()
+```
+
+おｋ
+
+ていうかきっとライブラリがあるだろう
+・・・numpyてやつ使わないとそれっぽくない？
+複素数でも使うか
+
+```python
+from math import pi
+from cmath import rect
+
+def print_xy(z):
+    print(z.real, z.imag)
+
+def koch(p1, p2, level):
+    if level == 0:
+        return
+    l = p2 - p1
+    s = p1 + (1/3) * l
+    t = p1 + (2/3) * l
+    u = s + (1/3) * l * rect(1, pi/3)
+    koch(p1, s, level - 1)
+    print_xy(s)
+    koch(s, u, level - 1)
+    print_xy(u)
+    koch(u, t, level - 1)
+    print_xy(t)
+    koch(t, p2, level - 1)
+
+def main():
+    n = int(input())
+    print_xy(0+0j)
+    koch(0+0j, 100+0j, n)
+    print_xy(100+0j)
+
+main()
+```
+
