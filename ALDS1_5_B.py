@@ -18,7 +18,7 @@ def merge(A, left, mid, right):
     for k in range(left, right):
         # print(l, r)
         c += 1
-        if l < r:
+        if l <= r:
             A[k] = l
             l = next(i)
         else:
