@@ -2390,7 +2390,7 @@ def solve():
             return True
         elif m < 0 or k == n:
             return False
-        else: 
+        else:
             return (can_make_sum(k + 1, m - A[k]) or
                     can_make_sum(k + 1, m))
 
@@ -2432,7 +2432,7 @@ def solve():
     _ = int(input())
     M = [int(x) for x in input().split()]
 
-    for m in M:         
+    for m in M:
         print("yes" if can_make_sum(m) else "no")
 
 solve()
@@ -2459,7 +2459,7 @@ def solve():
                 return True
             elif m < 0 or k == n:
                 return False
-            else: 
+            else:
                 return (can_make_sum(k + 1, m - A[k]) or
                         can_make_sum(k + 1, m))
 
@@ -2537,7 +2537,7 @@ class Point2D():
             return Point2D(self.x * a, self.y * a)
         else:
             return NotImplemented
-    
+
     def rotate(self, theta):
         return Point2D(self.x * cos(theta) - self.y * sin(theta),
                        self.x * sin(theta) + self.y * cos(theta))
@@ -2610,6 +2610,7 @@ main()
 
 擬似コードをそのまま書けばほとんど終わりだけどあえてイテレータで書いてみた
 こういう書き方で合ってるんだろうか
+若干無理してる感あるような気も
 
 ```python
 #! /usr/local/bin/python3
@@ -2653,3 +2654,125 @@ main()
 ```
 
 比較回数はグローバル変数にしてしまったけどなにかかっこいい書き方ないかな
+
+## [PCAD] ALDS1_6_B: Partition
+
+今回も擬似コード翻訳すれば終わりなんだけどなんかややこしい
+ノートに絵を書いてみるまでピンとこなかった
+（解説見れば書いてあるんだけど）
+
+```python
+#! /usr/local/bin/python3
+# coding: utf-8
+
+def swap(A, i, j):
+    tmp = A[i]
+    A[i] = A[j]
+    A[j] = tmp
+
+def partition(A, p, r):
+    x = A[r]
+    i = p - 1
+    for j in range(p, r):
+        if A[j] <= x:
+            i += 1
+            swap(A, i, j)
+    swap(A, i + 1, r)
+    return i + 1
+
+def bracketify(A, i, q):
+    return "[" + str(A[i]) + "]" if i == q else str(A[i])
+
+def main():
+    n = int(input())
+    A = [int(x) for x in input().split()]
+    q = partition(A, 0, n - 1)
+    print(*[bracketify(A, i, q) for i in range(n)])
+
+main()
+```
+
+イテレータで書き換えてみようかと思ったけど
+要素の入れ替えとか最後の要素を見るとか無理な気がしてきたので放置
+新しいリストにappendしていくのだとマージになってしまうし
+
+## [PCAD] ALDS1_6_C: Quick Sort
+
+前回の結果を使ってQuick Sort
+Stableかどうかも判定するんだけどアレだな
+バブルソートじゃTLEだろうからマージソート使うんだな
+
+配列の値から数字を取り出すところは`merge_sort`や`quick_sort`に
+関数を渡すのかなと思ったけどそこまですることもあるまいということで直書き
+
+```python
+from sys import stdin
+from math import inf
+
+def merge(A, left, mid, right):
+    L = A[left:mid]; L.append(("", inf))
+    R = A[mid:right]; R.append(("", inf))
+    i = iter(L); l = next(i)
+    j = iter(R); r = next(j)
+    for k in range(left, right):
+        if l[1] <= r[1]:
+            A[k] = l
+            l = next(i)
+        else:
+            A[k] = r
+            r = next(j)
+
+def merge_sort(A, left, right):
+    if left + 1 < right:
+        mid = (left + right) // 2
+        merge_sort(A, left, mid)
+        merge_sort(A, mid, right)
+        merge(A, left, mid, right)
+    
+def swap(A, i, j):
+    tmp = A[i]
+    A[i] = A[j]
+    A[j] = tmp
+
+def partition(A, p, r):
+    x = A[r][1]
+    i = p - 1
+    for j in range(p, r):
+        if A[j][1] <= x:
+            i += 1
+            swap(A, i, j)
+    swap(A, i + 1, r)
+    return i + 1
+
+def quick_sort(A, p, r):
+    if p < r:
+        q = partition(A, p, r)
+        quick_sort(A, p, q - 1)
+        quick_sort(A, q + 1, r)
+
+def main():
+    n = int(stdin.readline())
+    A = []
+    for l in stdin:
+        suit, num = l.split()
+        A.append((suit, int(num)))
+    B = A[:]
+    quick_sort(A, 0, n - 1)
+    merge_sort(B, 0, n)
+    print("Stable" if A == B else "Not stable")
+    [print(*a) for a in A]
+
+main()
+```
+
+ところでたまたま結果が同じだったっていうのもStableのうちなのか？
+ちょっと違う気もする
+
+ここ、リスト閉包で書けないものかな
+split()を2回書いてもよければ書けなくもないけどそれはそれでうれしくない
+
+```python
+    for l in stdin:
+        suit, num = l.split()
+        A.append((suit, int(num)))
+```
