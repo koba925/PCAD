@@ -2728,7 +2728,7 @@ def merge_sort(A, left, right):
         merge_sort(A, left, mid)
         merge_sort(A, mid, right)
         merge(A, left, mid, right)
-    
+
 def swap(A, i, j):
     tmp = A[i]
     A[i] = A[j]
@@ -2765,10 +2765,11 @@ def main():
 main()
 ```
 
-ところでたまたま結果が同じだったっていうのもStableのうちなのか？
+おｋ
+ところでたまたま結果が同じだったっていうのもStableのうちなのかな？
 ちょっと違う気もする
 
-ここ、リスト閉包で書けないものかな
+あとここ、リスト閉包で書けないものかな
 split()を2回書いてもよければ書けなくもないけどそれはそれでうれしくない
 
 ```python
