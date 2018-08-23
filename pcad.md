@@ -2777,3 +2777,132 @@ split()を2回書いてもよければ書けなくもないけどそれはそれ
         suit, num = l.split()
         A.append((suit, int(num)))
 ```
+
+## ひとやすみ: vscode入門
+
+PythonのコードはVisual Studio Codeで書いてます
+インストールして特に何も調べずに使ってたので便利な機能を見逃して人生を損してるかもしれない
+ということでとりあえず@ITの記事をざっと確認してみました
+
+[Visual Studio Codeの使い方、基本の「キ」 - ＠IT](http://www.atmarkit.co.jp/ait/articles/1507/10/news028.html)
+
+* クイックオープン: Cmd+P、コマンドパレット: Shift+Cmd+P
+  * ?: ヘルプ
+  * >: コマンド実行
+  * #: シンボルへ移動
+* パスを通す: コマンドパレット+"Shell Command: Install 'code' command in PATH"
+* ウェルカムページ: [ヘルプ]-[ようこそ]
+* プレビューエディタ: エクスプローラでシングルクリック
+* マルチルートワークスペース: [ファイル]-[ワークスペースにフォルダーを追加]
+* 統合ターミナル: Ctrl+Shift+@
+* カーソルの左側を削除: Cmd+Delete
+* カーソル行を削除: Shift+Cmd+K
+* カーソル行の上に改行: Shift+Cmd+Ener
+* カーソル位置に改行: Ctrl+O
+* カーソル行の下に改行: Cmd+Enter
+* ユーザー設定／ワークスペース設定: [Code]-[基本設定]-[設定] Cmd-,
+* ショートカット設定: [Code]-[基本設定]-[キーボード ショートカット] Cmd-K Cmd-S
+
+[Visual Studio CodeでGitを利用する - ＠IT](http://www.atmarkit.co.jp/ait/articles/1507/21/news017.html)
+
+* リモートリポジトリの設定はコマンドラインで
+  * `git remote add origin https://github.com/koba925/PCAD.git`
+  * `git push -u origin master`
+* ブランチの切り替えはステータスバーで
+  * 新規ブランチも作成可能
+
+[Visual Studio Codeの使い勝手をよくするツール - ＠IT](http://www.atmarkit.co.jp/ait/articles/1509/08/news019.html)
+
+* タスク: コマンドパレットで"task"
+* SEARCHバー
+  * プロジェクト内で検索
+  * Match Case, Whole Match, Regular Expression, その他
+* スニペット
+  * 作成: [Code]-[基本設定]-[ユーザースニペット]
+
+[Visual Studio Codeの設定「虎の巻」：Python編](http://www.atmarkit.co.jp/ait/articles/1711/24/news034.html)
+
+* Intellisense
+* 実行: Python: Run Python File in Terminal → Cmd+Rを割り当ててみた
+* デバッグ実行
+  * F11(ステップ実行)はMacOSによりデスクトップ表示になっているので変更しておく
+* linter
+  * pep8をEnableしてみた
+  * "python.linting.pep8Enabled": true,
+  * "python.linting.pylintEnabled": false
+* フォーマッタ
+  * "python.formatting.provider": "autopep8"
+* オートフォーマット
+  * 有効にしてみた
+  * "editor.formatOnSave": true,
+  * "editor.formatOnType": true
+* Jupyter
+  * 面白そうだけどまた今度
+
+[VS CodeでPythonするために必要なこと - ＠IT](http://www.atmarkit.co.jp/ait/articles/1805/22/news043.html)
+
+* 仮想環境（よくわかっていない）
+
+[VS CodeでPythonプログラムを快適コーディング！ - ＠IT](http://www.atmarkit.co.jp/ait/articles/1805/29/news031.html)
+
+* けっこうカブってる
+
+[VS CodeでPythonコードのデバッグも楽々！！ - ＠IT](http://www.atmarkit.co.jp/ait/articles/1806/05/news023.html)
+
+* デバッグの構成
+  * "stopOnEntry": true
+* デバッグコンソール
+  * ウォッチ式
+
+[あると便利？　VS Codeで使えるPython関連の拡張機能 - ＠IT](http://www.atmarkit.co.jp/ait/articles/1806/19/news026.html)
+
+* 行末の空白文字を除去（標準の機能）
+  * "files.trimTrailingWhitespace": true
+
+## [PCAD] ALDS1_6_A: Counting Sort
+
+いわゆるバケツソート
+原理は知ってた
+
+解説はA,Bが1オリジンになってますが
+なんかA[0]とかB[0]が使われてないのが気持ち悪いので
+0番目から詰めました
+
+```python
+def counting_sort(A, k):
+    B = [0] * len(A)
+    C = [0] * k
+
+    for a in A:
+        C[a] += 1
+
+    for i in range(1, k):
+        C[i] += C[i - 1]
+
+    for a in reversed(A):
+        B[C[a] - 1] = a
+        C[a] -= 1
+
+    return B
+
+def main():
+    n = int(input())
+    A = [int(x) for x in input().split()]
+    print(*counting_sort(A, 10001))
+
+main()
+```
+
+最後、Bを作るところはなんで後ろから見てるんだと思いましたが
+（実際`reversed`しなくてもソートは成功するし）
+そうしないとStableにならないんですね
+なるほど
+
+Cをいったん累積にしてからやるのはこれで効率いいのかな
+なんか頭いいことしてるような気はするんだけど
+普通にやってもいいような気も
+
+ところでpep8でフォーマットするようにしたので実際のソースは
+関数と関数の間が２行空くようになりました
+どうも間延びしてるように見えて好きになれませんね
+慣れの問題かもしれませんが
