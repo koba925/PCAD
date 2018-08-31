@@ -3180,7 +3180,7 @@ ALDS1_5_Dが思考★★★、実装★★☆だったのに対し、今度は�
 
 さてどうしたものか
 
-## [PCAD] ALDS1_6_D: Minimum Cost Sort
+## [PCAD] ALDS1_6_D: Minimum Cost Sort (続き)
 
 ちょっと時間がない
 
@@ -3198,8 +3198,6 @@ ALDS1_5_Dが思考★★★、実装★★☆だったのに対し、今度は�
 O(n^2 )
 
 ```python
-from bisect import bisect_left
-
 def swap(w, i, j):
     tmp = w[i]
     w[i] = w[j]
@@ -3238,3 +3236,80 @@ main()
 7↔8、7↔9、7↔10でいいのか
 うーん大きな数から正しい位置に、という戦略がそもそもダメってことか
 
+## [PCAD] ALDS1_6_D: Minimum Cost Sort (続きの続き)
+
+総当たりくらいしか思いつかないので総当たりを書いてみた
+
+コストがそれまでの最小コストを上回るか、ソートが成功するまで
+あらゆる手を試します
+最初の最小コストはそこそこの値をセットしておかないと大変なことになるので
+昨日のアルゴリズムで算出した値を使う
+
+```python
+from itertools import product
+from math import inf
+from sys import setrecursionlimit
+
+setrecursionlimit(10000)
+
+ws = []
+min_weight = inf
+
+def swap(w, i, j):
+    tmp = w[i]
+    w[i] = w[j]
+    w[j] = tmp
+
+
+def try_next(w, total, hand):
+    global min_weight
+
+    if total > min_weight:
+        return
+
+    if w == ws:
+        min_weight = min(total, min_weight)
+        return
+
+    for i, j in product(range(len(w)), range(len(w))):
+        if i >= j:
+            continue
+        wnew = w[:]
+        swap(wnew, i, j)
+        hnew = hand[:]
+        hnew.append((i, j))
+        try_next(wnew, total + w[i] + w[j], hnew)
+
+    return
+
+def first_try(w):
+    global ws
+
+    weight = 0
+    for i in reversed(range(len(w))):
+        j = w.index(ws[i])
+        if i != j:
+            weight += w[i] + w[j]
+            swap(w, i, j)
+    return weight
+
+def main():
+    global ws, min_weight
+
+    n = int(input())
+    w = [int(x) for x in input().split()]
+    ws = sorted(w)
+
+    min_weight = first_try(w[:])
+    try_next(w, 0, [])
+    print(min_weight)
+
+main()
+```
+
+今日は6番目のテストまで成功して7番目でTLE
+データ数は8個
+
+デバッグのためにそれまでどう入れ替えたか記憶させてたり
+安直にリストをコピーしてたりするけど
+それくらいの改善では焼け石に水もいいところなのでやらない
