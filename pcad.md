@@ -3313,3 +3313,90 @@ main()
 デバッグのためにそれまでどう入れ替えたか記憶させてたり
 安直にリストをコピーしてたりするけど
 それくらいの改善では焼け石に水もいいところなのでやらない
+
+## [PCAD] ALDS1_7_A: Rooted Trees
+
+> 難しいと感じたら今は飛ばして、実力をつけてから挑戦してみましょう。
+
+ではお言葉に甘えて
+でもこの本でこの先にこの問題が解けるようななにかが出てくるのかなあ？
+
+ふむ
+木を作るだけでよさそうだ
+
+でもサンプルデータを見てみるとなんか違和感がある
+なんだろう
+
+根から親→子の順に書いてあるんだけど、子の実体が出てくる前に
+親が子を知っているからかな
+普通だと子が出てきてから子のためのメモリを確保してポインタを
+記録すると思うんだけど
+こういう場合はどうするのがいいんだろう
+
+出題者の意図はわからないけど、要素数がわかった時点で配列を確保してしまって
+あとは添字でポイントするのが楽そうだ
+ポイント先も数字で0からn-1って書いてあるし
+そうすると入力行に書いてある節点番号が冗長じゃないかな？
+いや、順番に出てくるとは書いてないから必要か
+
+あと、親ノードの番号を持つことにする？
+この問題としてはそのほうが楽だけど、根から探せないこともなさそう
+でも持たせよう
+楽しよう
+
+```python
+class Node():
+    def __init__(self, parent=-1, child=[]):
+        self.parent = parent
+        self.child = child
+
+def node_depth(u, id):
+    if u[id].parent == -1:
+        return 0
+    else:
+        return node_depth(u, u[id].parent) + 1
+
+def node_type(u, id):
+    if u[id].parent == -1:
+        return "root"
+    elif u[id].child == []:
+        return "leaf"
+    else:
+        return "internal node"
+
+def main():
+    n = int(input())
+    u = [Node() for _ in range(n)]
+
+    for _ in range(n):
+        id, _, *child = (int(x) for x in input().split())
+        u[id].child = child
+        for c in child:
+            u[c].parent = id
+
+    for id in range(n):
+        print("node {}: parent = {}, depth = {}, {}, {}".
+              format(id, u[id].parent,
+                     node_depth(u, id), node_type(u, id),
+                     u[id].child))
+
+main()
+```
+
+ノードを配列で持って添字でポイントする方針だと、`parent`が
+直接親ノードを指すわけじゃないから`depth`が`Node`クラス内に
+書けないとかあってクラスっぽく書けなくて、構造体と配列、みたいな
+感じになった
+`Tree`クラスと`Node`クラスを使って・・・ってやろうとするとどうも
+うまく書けなくて開き直るまでにけっこう手間取った
+
+解説ではどうなってるだろうか
+うん構造からぜんぜん違う
+左子右兄弟表現、ってすごい名前だな
+leftが長子でright
+`car`と`cdr`に似てなくもない
+
+配列を使って添字でポイントするってのは同じだった
+
+書くのは明日やってみよう
+
