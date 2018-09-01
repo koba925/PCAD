@@ -3,42 +3,73 @@
 
 
 class Node():
-    def __init__(self, parent=-1, child=[]):
+    NIL = -1
+
+    def __init__(self, parent=NIL, left=NIL, right=NIL, depth=-1):
         self.parent = parent
-        self.child = child
+        self.left = left
+        self.right = right
+        self.depth = depth
 
 
-def node_depth(u, id):
-    if u[id].parent == -1:
-        return 0
-    else:
-        return node_depth(u, u[id].parent) + 1
+def read_nodes(T):
+    for _ in range(len(T)):
+        id, _, *child = [int(x) for x in input().split()]
+        for i, c in enumerate(child):
+            if i == 0:
+                T[id].left = c
+            else:
+                T[l].right = c
+            l = c
+            T[c].parent = id
 
 
-def node_type(u, id):
-    if u[id].parent == -1:
+def calc_depth(T):
+
+    def rec(r, p):
+        nonlocal T
+
+        T[r].depth = p
+        if T[r].right != Node.NIL:
+            rec(T[r].right, p)
+        if T[r].left != Node.NIL:
+            rec(T[r].left, p + 1)
+
+    rec([u.parent for u in T].index(-1), 0)
+
+
+def node_type(T, id):
+    if T[id].parent == Node.NIL:
         return "root"
-    elif u[id].child == []:
+    elif T[id].left == Node.NIL:
         return "leaf"
     else:
         return "internal node"
 
 
+def child(T, id):
+    c = []
+    i = T[id].left
+    while i != Node.NIL:
+        c.append(i)
+        i = T[i].right
+    return c
+
+
+def print_nodes(T):
+    for id in range(len(T)):
+        print("node {}: parent = {}, depth = {}, {}, {}".
+              format(id, T[id].parent, T[id].depth,
+                     node_type(T, id), child(T, id)))
+
+
 def main():
     n = int(input())
-    u = [Node() for _ in range(n)]
+    T = [Node() for _ in range(n)]
 
-    for _ in range(n):
-        id, _, *child = (int(x) for x in input().split())
-        u[id].child = child
-        for c in child:
-            u[c].parent = id
-
-    for id in range(n):
-        print("node {}: parent = {}, depth = {}, {}, {}".
-              format(id, u[id].parent,
-                     node_depth(u, id), node_type(u, id),
-                     u[id].child))
+    read_nodes(T)
+    calc_depth(T)
+    print_nodes(T)
 
 
 main()
