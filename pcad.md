@@ -3588,3 +3588,105 @@ Out of rangeとかでエラーにならないの？とか思ってしまいま�
 `sibling_of`のところ、解説のソースよりも少し単純になってます
 これでは不足かなあ？
 親の左か右かは確実に自分のはず
+
+## [PCAD] ALDS1_7_C: Tree Walk
+
+今度は二分木を作ったあと、Preorder、Inorder、Postorderで
+巡回してみるっていう問題
+
+読み込むところは完全に流用でいいと思うけどあえて１から書き直す
+不要な部分もあるし
+
+一度書いたらすぐにもう一度書いてみるっていう勉強法があるらしくて
+なんかよさそうな気がするんだけどなかなか実際やってみるとなると
+先へ進みたい気持ちが強くてできないのでこういうときだけでも
+
+ノードに親を覚えさせておく必要はあんまりないんだけど
+根を探すときに使うので覚えさせておく
+探さないと根がわからない、っていうのは普通なのかな
+根があってそこにノードを追加していく、っていうのが普通かと思ってたけど
+
+```python
+from sys import stdin
+
+class Node():
+    NIL = -1
+
+    def __init__(self):
+        self.parent = Node.NIL
+        self.left = Node.NIL
+        self.right = Node.NIL
+
+def read_nodes(T):
+    for line in stdin:
+        id, left, right = [int(x) for x in line.split()]
+        T[id].left = left
+        if left != Node.NIL:
+            T[left].parent = id
+        T[id].right = right
+        if right != Node.NIL:
+            T[right].parent = id
+
+def root_of(T):
+    return [u.parent for u in T].index(Node.NIL)
+
+def walk_preorder(T):
+
+    def rec(id):
+        nonlocal T
+
+        if id == Node.NIL:
+            return
+        print("", id, end="")
+        rec(T[id].left)
+        rec(T[id].right)
+
+    print("Preorder")
+    rec(root_of(T))
+    print()
+
+def walk_inorder(T):
+
+    def rec(id):
+        nonlocal T
+
+        if id == Node.NIL:
+            return
+        rec(T[id].left)
+        print("", id, end="")
+        rec(T[id].right)
+
+    print("Inorder")
+    rec(root_of(T))
+    print()
+
+def walk_postorder(T):
+
+    def rec(id):
+        nonlocal T
+
+        if id == Node.NIL:
+            return
+        rec(T[id].left)
+        rec(T[id].right)
+        print("", id, end="")
+
+    print("Postorder")
+    rec(root_of(T))
+    print()
+
+def main():
+    n = int(stdin.readline())
+    T = [Node() for _ in range(n)]
+
+    read_nodes(T)
+    walk_preorder(T)
+    walk_inorder(T)
+    walk_postorder(T)
+
+main()
+```
+
+`walk_preorder`、`walk_inorder`、`walk_postorder`と
+そっくりな関数を３つ書いてしまったので、まとめられる書き方がないか気になる
+`rec`をまるごと渡す、だとほとんど変わらないし・・・
