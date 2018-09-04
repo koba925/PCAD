@@ -3690,3 +3690,94 @@ main()
 `walk_preorder`、`walk_inorder`、`walk_postorder`と
 そっくりな関数を３つ書いてしまったので、まとめられる書き方がないか気になる
 `rec`をまるごと渡す、だとほとんど変わらないし・・・
+
+## [PCAD] ALDS1_8_A: Binary Search Tree I
+
+二分探索木に要素を挿入します
+コードは問題に書いてあるものに従います
+
+親を覚えるようにしてるってことはどこかで使う予定ってことだろうなあ
+挿入・検索では使わなさそうだから削除で使うかな？
+
+```python
+from sys import stdin
+
+class Tree():
+    def __init__(self):
+        self.root = None
+
+    def insert(self, z):
+
+        y = None
+        x = self.root
+
+        while x != None:
+            y = x
+            if z.key < x.key:
+                x = x.left
+            else:
+                x = x.right
+
+        z.parent = y
+        if y == None:
+            self.root = z
+        elif z.key < y.key:
+            y.left = z
+        else:
+            y.right = z
+
+    def print_inorder(self):
+        def rec(node):
+            if not node:
+                return
+            else:
+                rec(node.left)
+                print("", node.key, end="")
+                rec(node.right)
+
+        rec(self.root)
+        print()
+
+    def print_preorder(self):
+
+        def rec(node):
+            if not node:
+                return
+            else:
+                print("", node.key, end="")
+                rec(node.left)
+                rec(node.right)
+
+        rec(self.root)
+        print()
+
+class Node():
+    def __init__(self, key):
+        self.key = key
+        self.parent = None
+        self.left = None
+        self.right = None
+
+def main():
+    _ = int(stdin.readline())
+    T = Tree()
+
+    for line in stdin:
+        cmd, *args = line.split()
+        if cmd == "insert":
+            T.insert(Node(int(args[0])))
+        elif cmd == "print":
+            T.print_inorder()
+            T.print_preorder()
+
+main()
+```
+
+再帰でやるんじゃないんだな
+ソートされたデータを500000も与えられたら再帰じゃ耐えられないか
+
+ACいただきました
+
+命令の数は500000を超えない、って書いてあるのに
+ｍ=500001のテストがあるっていうのはどういうことかな
+printも命令だよね
