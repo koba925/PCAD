@@ -2,55 +2,7 @@
 # -*- coding: utf-8 -*-
 
 from sys import stdin
-
-
-class Tree():
-    def __init__(self):
-        self.root = None
-
-    def insert(self, z):
-
-        def rec(node):
-            nonlocal z
-
-            if node is None:
-                return z
-            elif z.key < node.key:
-                return Node(node.key,
-                            rec(node.left),
-                            node.right)
-            else:
-                return Node(node.key,
-                            node.left,
-                            rec(node.right))
-
-        self.root = rec(self.root)
-        print(self.root)
-
-    def print_inorder(self):
-        def rec(node):
-            if not node:
-                return
-            else:
-                rec(node.left)
-                print("", node.key, end="")
-                rec(node.right)
-
-        rec(self.root)
-        print()
-
-    def print_preorder(self):
-
-        def rec(node):
-            if not node:
-                return
-            else:
-                print("", node.key, end="")
-                rec(node.left)
-                rec(node.right)
-
-        rec(self.root)
-        print()
+from functools import reduce
 
 
 class Node():
@@ -64,17 +16,52 @@ class Node():
             self.key, self.left, self.right)
 
 
+def insert(tree, z):
+    if tree is None:
+        return z
+    elif z.key < tree.key:
+        return Node(tree.key,
+                    insert(tree.left, z),
+                    tree.right)
+    else:
+        return Node(tree.key,
+                    tree.left,
+                    insert(tree.right, z))
+
+
+def flatten_inorder(tree):
+    if tree is None:
+        return []
+    else:
+        return flatten_inorder(tree.left) + \
+            [tree.key] + \
+            flatten_inorder(tree.right)
+
+
+def flatten_preorder(tree):
+    if tree is None:
+        return []
+    else:
+        return [tree.key] + \
+            flatten_preorder(tree.left) + \
+            flatten_preorder(tree.right)
+
+
+def process(tree, command):
+    if command[0] == "insert":
+        return insert(tree, Node(int(command[1])))
+    elif command[0] == "print":
+        print("", *flatten_inorder(tree))
+        print("", *flatten_preorder(tree))
+        return tree
+
+
 def main():
     _ = int(stdin.readline())
-    T = Tree()
 
-    for line in stdin:
-        cmd, *args = line.split()
-        if cmd == "insert":
-            T.insert(Node(int(args[0])))
-        elif cmd == "print":
-            T.print_inorder()
-            T.print_preorder()
+    reduce(process,
+           [line.split() for line in stdin],
+           None)
 
 
 main()
