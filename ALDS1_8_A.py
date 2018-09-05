@@ -2,29 +2,30 @@
 # -*- coding: utf-8 -*-
 
 from sys import stdin
-from sys import maxsize
 
 
 class Tree():
     def __init__(self):
-        self.root = Node(maxsize)
+        self.root = None
 
     def insert(self, z):
 
-        x = self.root
+        def rec(node):
+            nonlocal z
 
-        while x != None:
-            y = x
-            if z.key < x.key:
-                x = x.left
+            if node is None:
+                return z
+            elif z.key < node.key:
+                return Node(node.key,
+                            rec(node.left),
+                            node.right)
             else:
-                x = x.right
+                return Node(node.key,
+                            node.left,
+                            rec(node.right))
 
-        z.parent = y
-        if z.key < y.key:
-            y.left = z
-        else:
-            y.right = z
+        self.root = rec(self.root)
+        print(self.root)
 
     def print_inorder(self):
         def rec(node):
@@ -35,7 +36,7 @@ class Tree():
                 print("", node.key, end="")
                 rec(node.right)
 
-        rec(self.root.left)
+        rec(self.root)
         print()
 
     def print_preorder(self):
@@ -48,20 +49,19 @@ class Tree():
                 rec(node.left)
                 rec(node.right)
 
-        rec(self.root.left)
+        rec(self.root)
         print()
 
 
 class Node():
-    def __init__(self, key):
+    def __init__(self, key, left=None, right=None):
         self.key = key
-        self.parent = None
-        self.left = None
-        self.right = None
+        self.left = left
+        self.right = right
 
     def __repr__(self):
         return "Node({}, {}, {})".format(
-            self.val, self.left, self.right)
+            self.key, self.left, self.right)
 
 
 def main():
