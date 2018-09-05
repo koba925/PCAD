@@ -2,15 +2,15 @@
 # -*- coding: utf-8 -*-
 
 from sys import stdin
+from sys import maxsize
 
 
 class Tree():
     def __init__(self):
-        self.root = None
+        self.root = Node(maxsize)
 
     def insert(self, z):
 
-        y = None
         x = self.root
 
         while x != None:
@@ -21,9 +21,7 @@ class Tree():
                 x = x.right
 
         z.parent = y
-        if y == None:
-            self.root = z
-        elif z.key < y.key:
+        if z.key < y.key:
             y.left = z
         else:
             y.right = z
@@ -37,7 +35,7 @@ class Tree():
                 print("", node.key, end="")
                 rec(node.right)
 
-        rec(self.root)
+        rec(self.root.left)
         print()
 
     def print_preorder(self):
@@ -50,7 +48,7 @@ class Tree():
                 rec(node.left)
                 rec(node.right)
 
-        rec(self.root)
+        rec(self.root.left)
         print()
 
 
