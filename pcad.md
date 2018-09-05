@@ -3767,3 +3767,258 @@ n=5 : 41通り(たぶん)
 具体的にはわからない
 
 これはスルーか
+
+## [PCAD] ALDS1_8_A: Binary Search Tree I
+
+二分探索木に要素を挿入します
+コードは問題に書いてあるものに従います
+
+親を覚えるようにしてるってことはどこかで使う予定ってことだろうなあ
+挿入・検索では使わなさそうだから削除で使うかな？
+
+```python
+from sys import stdin
+
+class Tree():
+    def __init__(self):
+        self.root = None
+
+    def insert(self, z):
+
+        y = None
+        x = self.root
+
+        while x != None:
+            y = x
+            if z.key < x.key:
+                x = x.left
+            else:
+                x = x.right
+
+        z.parent = y
+        if y == None:
+            self.root = z
+        elif z.key < y.key:
+            y.left = z
+        else:
+            y.right = z
+
+    def print_inorder(self):
+        def rec(node):
+            if not node:
+                return
+            else:
+                rec(node.left)
+                print("", node.key, end="")
+                rec(node.right)
+
+        rec(self.root)
+        print()
+
+    def print_preorder(self):
+
+        def rec(node):
+            if not node:
+                return
+            else:
+                print("", node.key, end="")
+                rec(node.left)
+                rec(node.right)
+
+        rec(self.root)
+        print()
+
+class Node():
+    def __init__(self, key):
+        self.key = key
+        self.parent = None
+        self.left = None
+        self.right = None
+
+def main():
+    _ = int(stdin.readline())
+    T = Tree()
+
+    for line in stdin:
+        cmd, *args = line.split()
+        if cmd == "insert":
+            T.insert(Node(int(args[0])))
+        elif cmd == "print":
+            T.print_inorder()
+            T.print_preorder()
+
+main()
+```
+
+再帰でやるんじゃないんだな
+ソートされたデータを500000も与えられたら再帰じゃ耐えられないか
+
+ACいただきました
+
+命令の数は500000を超えない、って書いてあるのに
+ｍ=500001のテストがあるっていうのはどういうことかな
+printも命令だよね
+
+## [PCAD] ALDS1_8_A: Binary Search Tree I (続き)
+
+挿入のとき、最初の要素だけ特別扱いしてるのが気になった
+番兵使えないかな？
+
+```python
+from sys import maxsize
+
+class Tree():
+    def __init__(self):
+        self.root = Node(maxsize)
+
+    def insert(self, z):
+
+        x = self.root
+
+        while x != None:
+            y = x
+            if z.key < x.key:
+                x = x.left
+            else:
+                x = x.right
+
+        z.parent = y
+        if z.key < y.key:
+            y.left = z
+        else:
+            y.right = z
+
+    def print_inorder(self):
+
+        :
+
+        rec(self.root.left)
+        print()
+
+    def print_preorder(self):
+
+        :
+
+        rec(self.root.left)
+        print()
+```
+
+できてる模様
+最初にひとつ、キーを最大にしたノードを置いておいて、
+そのノードの左からが本来の木という形
+
+少しだけ短くなった
+`self.root.left`から見始めるのがあまり美しくないので
+`self.root`はなにかちがう名前にして
+`self.root.left`を`self.root`という名前にするといいかもしれない
+
+ついでに
+
+> 再帰でやるんじゃないんだな
+
+そこだけ半端に再帰でやってみた
+もとのソースからの差異
+
+```python
+    def insert(self, z):
+
+        def rec(node):
+            nonlocal z
+
+            if node is None:
+                return z
+            elif z.key < node.key:
+                return Node(node.key,
+                            rec(node.left),
+                            node.right)
+            else:
+                return Node(node.key,
+                            node.left,
+                            rec(node.right))
+
+        self.root = rec(self.root)
+
+class Node():
+    def __init__(self, key, left=None, right=None):
+        self.key = key
+        self.left = left
+        self.right = right
+```
+
+このやりかたでいちいち結果を`self.root`に覚えてるのは一貫性がないかな
+`Node`に`parent`を覚えさせるところは手を抜いた
+引数にして渡すだけでできると思うけど
+
+> ソートされたデータを500000も与えられたら再帰じゃ耐えられないか
+
+ソートはされてなかったけど当然TLE
+
+## [PCAD] ALDS1_8_A: Binary Search Tree I (続きの続き)
+
+もっとがんばって関数型っぽい雰囲気を目指すとどうなるのか
+といっても入出力ありで関数型っぽく書くっていうのがどういうことなのか
+よくわかっていなかったりする
+Scheme手習いとかでは値しか出力するものがなかったからなあ
+
+とりあえず入出力はできるだけ狭い範囲に閉じ込めた
+命令を順次処理しながら木を作っていくところで`reduce`を使ったのは
+どうなんだろう
+若干無理をしてる気がしないでもないけど
+
+```python
+from sys import stdin
+from functools import reduce
+
+class Node():
+    def __init__(self, key, left=None, right=None):
+        self.key = key
+        self.left = left
+        self.right = right
+
+def insert(tree, z):
+    if tree is None:
+        return z
+    elif z.key < tree.key:
+        return Node(tree.key,
+                    insert(tree.left, z),
+                    tree.right)
+    else:
+        return Node(tree.key,
+                    tree.left,
+                    insert(tree.right, z))
+
+def flatten_inorder(tree):
+    if tree is None:
+        return []
+    else:
+        return flatten_inorder(tree.left) + \
+            [tree.key] + \
+            flatten_inorder(tree.right)
+
+def flatten_preorder(tree):
+    if tree is None:
+        return []
+    else:
+        return [tree.key] + \
+            flatten_preorder(tree.left) + \
+            flatten_preorder(tree.right)
+
+def process_command(tree, command):
+    if command[0] == "insert":
+        return insert(tree, Node(int(command[1])))
+    elif command[0] == "print":
+        print("", *flatten_inorder(tree))
+        print("", *flatten_preorder(tree))
+        return tree
+
+def main():
+    _ = int(stdin.readline())
+
+    reduce(process_command,
+           [line.split() for line in stdin],
+           None)
+
+main()
+```
+
+とうぜんデータ数が多いとTLEです
