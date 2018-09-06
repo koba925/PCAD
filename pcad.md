@@ -4022,3 +4022,70 @@ main()
 ```
 
 とうぜんデータ数が多いとTLEです
+
+## [PCAD] ALDS1_8_B: Binary Search Tree II
+
+前回のプログラムにfind命令を追加します
+どれに追加しようかな
+
+まあ普通に作ったやつから
+差分のみ
+
+```python
+class Tree():
+
+    :
+
+    def find(self, key):
+        x = self.root
+        while x != None:
+            if key == x.key:
+                return True
+            elif key < x.key:
+                x = x.left
+            else:
+                x = x.right
+        return False
+
+def main():
+    _ = int(stdin.readline())
+    T = Tree()
+
+    for line in stdin:
+        cmd, *args = line.split()
+        if cmd == "insert":
+            T.insert(Node(int(args[0])))
+        elif cmd == "find":
+            print("yes" if T.find(int(args[0])) else "no")
+        elif cmd == "print":
+            T.print_inorder()
+            T.print_preorder()
+```
+
+関数型をめざしたやつベースで
+同じく差分のみ
+
+```python
+def find(tree, key):
+    if tree is None:
+        return False
+    elif key < tree.key:
+        return find(tree.left, key)
+    elif key == tree.key:
+        return True
+    else:
+        return find(tree.right, key)
+
+def process_command(tree, command):
+    if command[0] == "insert":
+        return insert(tree, Node(int(command[1])))
+    elif command[0] == "find":
+        print("yes" if find(tree, int(command[1])) else "no")
+        return tree
+    elif command[0] == "print":
+        print("", *flatten_inorder(tree))
+        print("", *flatten_preorder(tree))
+        return tree
+```
+
+ゲーム作るときなんかは状態をreduceしながら進めるのかな、とふと思った
