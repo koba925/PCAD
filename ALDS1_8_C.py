@@ -61,33 +61,14 @@ class Tree():
     def delete(self, key):
         x = self.find(key)
         if x.left is None or x.right is None:
-            delete_node(self, x)
-        elif x.left.right is None:
-            x.left.parent = x.parent
-            if x.parent.left == x:
-                x.parent.left = x.left
-            else:
-                x.parent.right = x.left
-            x.left.right = x.right
-            x.right.parent = x.left
+            self.delete_node(x)
+        elif x.right.left is None:
+            x.key = x.right.key
+            self.delete_node(x.right)
         else:
-            y = x.left.rightmost_child()
-            z = y.leftmost_child()
-            # print("y {}, z {}".format(y.key, z.key))
-
-            y.parent.right = None
-
-            if x.parent.left == x:
-                x.parent.left = y
-            else:
-                x.parent.right = y
-            y.parent = x.parent
-
-            x.right.parent = y
-            y.right = x.right
-
-            x.left.parent = z
-            z.left = x.left
+            y = x.right.leftmost_child()
+            x.key = y.key
+            self.delete_node(y)
 
     def print_inorder(self):
         def rec(node):
@@ -157,7 +138,7 @@ def main():
         elif cmd == "print":
             T.print_inorder()
             T.print_preorder()
-        print(T)
+        # print(T)
 
 
 main()
