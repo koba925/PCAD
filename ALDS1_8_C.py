@@ -177,32 +177,6 @@ def main():
     process(commands)
 
 
-def test_a_case(name, commands, expected):
-    result = str(process(commands))
-    assert result == expected, name + " " + result
-
-
-def test():
-    test_a_case(
-        "test1",
-        [
-        ],
-        "()")
-    test_a_case(
-        "test2",
-        [
-            ["insert", "1"],
-        ],
-        "(1 None None)")
-    test_a_case(
-        "test3",
-        [
-            ["insert", "1"],
-            ["delete", "1"],
-        ],
-        "()")
-
-
 def random_test_repr(n, p, q, T):
     return "n:{}\np:{}\nq:{}\nT:{}".format(
         n, p, q, str(T))
@@ -257,7 +231,6 @@ def random_test():
             random_array(L), random_array(L))
 
 
-test()
 random_test()
 exit()
 
