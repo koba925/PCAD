@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 
 from sys import stdin
+from random import randrange
 
 
 class Tree():
@@ -41,18 +42,24 @@ class Tree():
 
     def delete_node(self, x):
         if x.left is None and x.right is None:
-            if x.parent.left == x:
+            if x.parent is None:
+                self.root = None
+            elif x.parent.left == x:
                 x.parent.left = None
             else:
                 x.parent.right = None
         elif x.left is None:
-            if x.parent.left == x:
+            if x.parent is None:
+                self.root = x.right
+            elif x.parent.left == x:
                 x.parent.left = x.right
             else:
                 x.parent.right = x.right
             x.right.parent = x.parent
         elif x.right is None:
-            if x.parent.left == x:
+            if x.parent is None:
+                self.root = x.left
+            elif x.parent.left == x:
                 x.parent.left = x.left
             else:
                 x.parent.right = x.left
@@ -70,16 +77,40 @@ class Tree():
             x.key = y.key
             self.delete_node(y)
 
-    def print_inorder(self):
+    def fold_inorder(self, f, init):
+        def rec(node, b):
+            nonlocal f, init
+
+            if not node:
+                return b
+            else:
+                return rec(node.right,
+                           f(node.key,
+                             rec(node.left, b)))
+
+        return rec(self.root, init)
+
+    def flatten_inorder(self):
+        return self.fold_inorder(
+            lambda a, b: b + [a],
+            [])
+
+    def foreach_inorder(self, f):
+
         def rec(node):
             if not node:
                 return
             else:
                 rec(node.left)
-                print("", node.key, end="")
+                f(node.key)
                 rec(node.right)
 
         rec(self.root)
+
+    def print_inorder(self):
+        self.foreach_inorder(
+            lambda a: print("", a, end="")
+        )
         print()
 
     def print_preorder(self):
@@ -100,11 +131,11 @@ class Tree():
 
 
 class Node():
-    def __init__(self, key):
+    def __init__(self, key, parent=None, left=None, right=None):
         self.key = key
-        self.parent = None
-        self.left = None
-        self.right = None
+        self.parent = parent
+        self.left = left
+        self.right = right
 
     def rightmost_child(self):
         x = self
@@ -123,22 +154,111 @@ class Node():
             self.key, self.left, self.right)
 
 
-def main():
-    _ = int(stdin.readline())
+def process(commands):
     T = Tree()
-
-    for line in stdin:
-        cmd, *args = line.split()
-        if cmd == "insert":
-            T.insert(Node(int(args[0])))
-        elif cmd == "find":
-            print("yes" if T.find(int(args[0])) else "no")
-        elif cmd == "delete":
-            T.delete(int(args[0]))
-        elif cmd == "print":
+    for cmd in commands:
+        if cmd[0] == "insert":
+            T.insert(Node(int(cmd[1])))
+        elif cmd[0] == "find":
+            print("yes" if T.find(int(cmd[1])) else "no")
+        elif cmd[0] == "delete":
+            T.delete(int(cmd[1]))
+        elif cmd[0] == "print":
             T.print_inorder()
             T.print_preorder()
-        # print(T)
+    return T
 
+
+def main():
+    _ = int(stdin.readline())
+    commands = []
+    for line in stdin:
+        commands.append(line.split())
+    process(commands)
+
+
+def test_a_case(name, commands, expected):
+    result = str(process(commands))
+    assert result == expected, name + " " + result
+
+
+def test():
+    test_a_case(
+        "test1",
+        [
+        ],
+        "()")
+    test_a_case(
+        "test2",
+        [
+            ["insert", "1"],
+        ],
+        "(1 None None)")
+    test_a_case(
+        "test3",
+        [
+            ["insert", "1"],
+            ["delete", "1"],
+        ],
+        "()")
+
+
+def random_test_repr(n, p, q, T):
+    return "n:{}\np:{}\nq:{}\nT:{}".format(
+        n, p, q, str(T))
+
+
+def test_a_random_case(p, q):
+    T = Tree()
+    inserted = []
+
+    for n in p:
+        assert not T.find(n), \
+            "Before Insert:\n" + \
+            random_test_repr(n, p, q, str(T))
+        T.insert(Node(n))
+        assert T.find(n), \
+            "After Insert:\n" + \
+            random_test_repr(n, p, q, str(T))
+
+        inserted.append(n)
+        assert T.flatten_inorder() == sorted(inserted), \
+            "Inorder(Inserting):\n" + \
+            random_test_repr(n, p, q, str(T))
+
+    for n in q:
+        T.delete(n)
+        assert not T.find(n), \
+            "After Delete:\n" + \
+            random_test_repr(n, p, q, str(T))
+
+        inserted.remove(n)
+        assert T.flatten_inorder() == sorted(inserted), \
+            "Inorder(Deleting):\n" + \
+            random_test_repr(n, p, q, str(T))
+
+
+def random_array(l):
+    arr = list(range(l))
+    for i in range(l):
+        j = randrange(l)
+        tmp = arr[i]
+        arr[i] = arr[j]
+        arr[j] = tmp
+    return arr
+
+
+def random_test():
+    N = 10000
+    L = 7
+
+    for i in range(N):
+        test_a_random_case(
+            random_array(L), random_array(L))
+
+
+test()
+random_test()
+exit()
 
 main()
