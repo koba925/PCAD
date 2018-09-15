@@ -4122,4 +4122,449 @@ def process_command(tree, command):
 場合分けが入るだけでも面倒なのになあ
 もうちょっと局所的に済ませられないものか
 
+・・・無理かな
+
 ## [PCAD] ALDS1_8_C: Binary Search Tree III (続き)
+
+> 削除したノードのところに（どっちでもいいけど）左の子をつなぎ直して、
+> 右の子は左の子の右端のノードの右につなぐ
+
+だと、削除前より木が深くなっちゃったりするのでよくなさそう
+
+> 左の子の右端のノードを削除したノードのところにつなぐ
+
+こっちで行こう
+
+まず削除対象のノードを見つけないといけないな
+`find`が`True/False`を返すようにしてたけど、ノードを返すようにすれば
+そのまま使えそう
+見つからなければ`None`
+確か`None`が`False`扱いで`None`以外はTrueになるんだったよね
+
+`parent`が覚えてあるとやっぱり楽だな
+
+で、さらに考えてみると
+削除したノードの左の子に右の子があるかどうかで分けなければ
+いけないような気がする
+
+削除したノードの左の子に右の子がないときは
+左の子を親につなぎ直して
+左の子の右に親の右の子をつなぎ直す
+
+右の子があるときは、
+右端のノードの親は削除したノードの親
+右端のノードの右の子は削除したノードの右の子
+右端のノードの左端のノードの左の子は削除したノードの左の子
+
+もう死にそう
+コードにしてみた（一部省略）
+
+```python
+from sys import stdin
+
+class Node():
+
+    :
+
+    def rightmost_child(self):
+        x = self
+        while x.right is not None:
+            x = x.right
+        return x
+
+    def leftmost_child(self):
+        x = self
+        while x.left is not None:
+            x = x.left
+        return x
+
+class Tree():
+
+    :
+
+    def find(self, key):
+        x = self.root
+        while x is not None:
+            if key == x.key:
+                return x
+            elif key < x.key:
+                x = x.left
+            else:
+                x = x.right
+        return None
+
+    def delete(self, key):
+        x = self.find(key)
+        if x.left is None and x.right is None:
+            if x.parent.left == x:
+                x.parent.left = None
+            else:
+                x.parent.right = None
+        elif x.left is None:
+            if x.parent.left == x:
+                x.parent.left = x.right
+            else:
+                x.parent.right = x.right
+            x.right.parent = x.parent
+        elif x.right is None:
+            if x.parent.left == x:
+                x.parent.left = x.left
+            else:
+                x.parent.right = x.left
+            x.left.parent = x.parent
+        elif x.left.right is None:
+            x.left.parent = x.parent
+            if x.parent.left == x:
+                x.parent.left = x.left
+            else:
+                x.parent.right = x.left
+            x.left.right = x.right
+            x.right.parent = x.left
+        else:
+            y = x.left.rightmost_child()
+            z = y.leftmost_child()
+
+            y.parent.right = None
+
+            if x.parent.left == x:
+                x.parent.left = y
+            else:
+                x.parent.right = y
+            y.parent = x.parent
+
+            x.right.parent = y
+            y.right = x.right
+
+            x.left.parent = z
+            z.left = x.left
+
+    :
+
+def main():
+    _ = int(stdin.readline())
+    T = Tree()
+
+    for line in stdin:
+        cmd, *args = line.split()
+        if cmd == "insert":
+            T.insert(Node(int(args[0])))
+        elif cmd == "find":
+            print("yes" if T.find(int(args[0])) else "no")
+        elif cmd == "delete":
+            T.delete(int(args[0]))
+        elif cmd == "print":
+            T.print_inorder()
+            T.print_preorder()
+```
+
+合ってる自信はまったくなし
+やってみると#3でWA
+しかし間違っているのかと言うと二分探索木としては間違ってない気もする
+これはつなぎ直し方の方針が違うだけかもしれない
+
+そろそろ問題最後まで読むか
+
+## [PCAD] ALDS1_8_C: Binary Search Tree III (続きの続き)
+
+> そろそろ問題最後まで読むか
+
+読む
+
+> 1. zが子を持たない場合、(略)
+> 1. zがちょうどひとつの子を持つ場合、(略)
+
+このふたつは問題なし
+
+> 1. zが子を２つ持つ場合、zの次節点yのキーをzのキーへコピーし、
+
+!!
+その発想はなかった
+
+> yを削除する。yの削除では1.または2.を適用する。
+
+1.や2.を再利用できるようにしたほうがよさそうだ
+
+> ここで、zの次節点とは、中間順巡回でzの次に得られる節点である。
+
+ふむ
+zの次に大きい、ってことだな
+zの右の子からたどった一番左の子ってわけか
+前回は左の子からたどった一番右の子をzの位置に持ってきてた
+左右反対だけどやってることはけっこう似てる
+
+了解
+差分のみ
+
+```python
+    def delete_node(self, x):
+        if x.left is None and x.right is None:
+            if x.parent.left == x:
+                x.parent.left = None
+            else:
+                x.parent.right = None
+        elif x.left is None:
+            if x.parent.left == x:
+                x.parent.left = x.right
+            else:
+                x.parent.right = x.right
+            x.right.parent = x.parent
+        elif x.right is None:
+            if x.parent.left == x:
+                x.parent.left = x.left
+            else:
+                x.parent.right = x.left
+            x.left.parent = x.parent
+
+    def delete(self, key):
+        x = self.find(key)
+        if x.left is None or x.right is None:
+            self.delete_node(x)
+        elif x.right.left is None:
+            x.key = x.right.key
+            self.delete_node(x.right)
+        else:
+            y = x.right.leftmost_child()
+            x.key = y.key
+            self.delete_node(y)
+```
+
+くそーすっきりしちまったじゃねえか
+すみません負けました
+
+`delete_node`のほうはこれ以上すっきりしないかな？
+
+解説と見比べてみる
+
+なるほどそう書いてもいいのか（負け惜しみ）
+まだ全然短くなるなあ
+
+あっ
+最上位ノードを削除するときの場合分けが抜けてた
+そんなんでAC出すなよ（逆ギレ
+オンラインジャッジのテストケースは網羅性とか気にしないんだろうか
+自分で書かないとほんとのとこダメなのかな
+いやしかし
+
+## [PCAD] ALDS1_8_C: Binary Search Tree III (続き3)
+
+> オンラインジャッジのテストケースは網羅性とか気にしないんだろうか
+
+まあ文句言ってても始まらないので軽くテストできるように書くか
+
+```python
+def process(commands):
+    T = Tree()
+    for cmd in commands:
+        if cmd[0] == "insert":
+            T.insert(Node(int(cmd[1])))
+        elif cmd == "find":
+            print("yes" if T.find(int(cmd[1])) else "no")
+        elif cmd == "delete":
+            T.delete(int(cmd[1]))
+        elif cmd == "print":
+            T.print_inorder()
+            T.print_preorder()
+    print(str(T))
+    return T
+
+def test_a_case(name, commands, expected):
+    result = str(process(commands))
+    assert result == expected, name + " " + result
+
+
+def test():
+    test_a_case(
+        "test1",
+        [
+        ],
+        "()")
+    test_a_case(
+        "test2",
+        [
+            ["insert", "1"],
+        ],
+        "(1 None None)")
+    test_a_case(
+        "test3",
+        [
+            ["insert", "1"],
+            ["delete", "1"],
+        ],
+        "()")
+
+test()
+```
+
+これくらいでバグが見つかるんだからテストなんてちょろいね
+うそです
+いろんなケースでちゃんと動くことを確認しようと思ったら
+どれだけ書けばいいか見当がつかない
+
+こういう場合コンピュータの中の人に力づくでテストしてもらうっていうのは
+どうだろう
+
+ランダムにノードを挿入してランダムに削除する
+毎回要素のありなしと、中間順巡回がソートされた結果になっていることを
+確認する
+たくさん繰り返す
+くらいでどうか
+中間順巡回だけでも十分なくらいかも？
+
+要素数が少なければ総当たりもできるかな？
+6つくらい要素があるとかなりのパターンを試せそうだけど
+などと考えつつこんなテストを書いた
+
+ほしくなったのでTreeクラスにfoldを書いてみた
+木でやるときもfoldって言うのかなあ
+ただしinorderだけ
+preorderとかpostorderと共通化する方法はまだ思いつかない
+
+```python
+from random import randrange
+
+class Tree():
+
+    def fold_inorder(self, f, init):
+        def rec(node, b):
+            nonlocal f, init
+
+            if not node:
+                return b
+            else:
+                return rec(node.right,
+                           f(node.key,
+                             rec(node.left, b)))
+
+        return rec(self.root, init)
+
+    def flatten_inorder(self):
+        return self.fold_inorder(
+            lambda a, b: b + [a],
+            [])
+
+def random_test_repr(n, p, q, T):
+    return "n:{}\np:{}\nq:{}\nT:{}".format(
+        n, p, q, str(T))
+
+def test_a_random_case(p, q):
+    T = Tree()
+    inserted = []
+
+    for n in p:
+        assert not T.find(n), \
+            "Before Insert:\n" + \
+            random_test_repr(n, p, q, str(T))
+        T.insert(Node(n))
+        assert T.find(n), \
+            "After Insert:\n" + \
+            random_test_repr(n, p, q, str(T))
+
+        inserted.append(n)
+        assert T.flatten_inorder() == sorted(inserted), \
+            "Inorder(Inserting):\n" + \
+            random_test_repr(n, p, q, str(T))
+
+    for n in q:
+        T.delete(n)
+        assert not T.find(n), \
+            "After Delete:\n" + \
+            random_test_repr(n, p, q, str(T))
+
+        inserted.remove(n)
+        assert T.flatten_inorder() == sorted(inserted), \
+            "Inorder(Deleting):\n" + \
+            random_test_repr(n, p, q, str(T))
+
+def random_array(l):
+    arr = list(range(l))
+    for i in range(l):
+        j = randrange(l)
+        tmp = arr[i]
+        arr[i] = arr[j]
+        arr[j] = tmp
+    return arr
+
+def random_test():
+    N = 10000
+    L = 7
+
+    for i in range(N):
+        test_a_random_case(
+            random_array(L), random_array(L))
+
+random_test()
+```
+
+要素数7とか試行回数10000は適当
+
+直したソースはこちら
+本に載ってるコードに合わせればいいんだろうけどまずは自分のコード直した
+親がいない場合を追加しただけ
+ただし3箇所
+ここまで来るとさすがになんとかアンチDRYを発動させないとという気分
+
+```python
+    def delete_node(self, x):
+        if x.left is None and x.right is None:
+            if x.parent is None:
+                self.root = None
+            elif x.parent.left == x:
+                x.parent.left = None
+            else:
+                x.parent.right = None
+        elif x.left is None:
+            if x.parent is None:
+                self.root = x.right
+            elif x.parent.left == x:
+                x.parent.left = x.right
+            else:
+                x.parent.right = x.right
+            x.right.parent = x.parent
+        elif x.right is None:
+            if x.parent is None:
+                self.root = x.left
+            elif x.parent.left == x:
+                x.parent.left = x.left
+            else:
+                x.parent.right = x.left
+            x.left.parent = x.parent
+```
+
+これでジャッジ通らなくなってたりしたら笑うけど無事AC
+
+テストでややこしいことすると、テストが正しいか不安になる
+
+## [PCAD] ALDS1_8_C: Binary Search Tree III (続き4)
+
+クラスを考え直してみる
+
+メソッドをTreeクラスにに実装するかNodeクラスに実装するか
+Nodeクラスに実装して、Treeクラスでは呼び出すだけでいいメソッドと、
+Treeクラスに実装すべきメソッドがある
+
+findやdeleteはNodeクラスにも書けるし、Nodeクラスに書いたら
+Treeクラスではself.root.find(key)みたいに呼び出せば済む
+でもinsertをNodeクラスに実装すると、動くことは動くけど
+ツリー全体で整合性が取れなくなるからやっちゃだめそう
+あるいはNodeクラスに実装するけどprotected扱いにするとか
+
+ツリーのrootを知らないといけないメソッドはNode型には
+書きづらいかもしれない
+parentがあれば問題ないかもしれない
+番兵をつかえばrootを特別扱いしなくてもいいかもしれない
+
+そもそも根本的に、findがNodeクラスに書けても、書かないほうがいいって
+
+さて
+
+イテレータを実装できないか
+さらにはinorder、preorder、postorderそれぞれのイテレータを作れたりしないか？
+作れたらいろいろシンプルにならないかな？
+
+あ、ノードがNode型に固定されてるのか、Nodeを継承するだけで
+他のクラスにも使えるのか、継承すらいらないのかも気になってたんだった
+
+---
+
+`unittest`の使い方くらいまで覚えとこうかなあ
+当初の目的はなんだったっけ状態
