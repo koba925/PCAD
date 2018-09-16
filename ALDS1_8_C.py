@@ -5,12 +5,55 @@ from sys import stdin
 from random import randrange
 
 
+class Node():
+    def __init__(self, key, parent=None, left=None, right=None):
+        self.key = key
+        self.parent = parent
+        self.left = left
+        self.right = right
+
+    def minimum_child(self):
+        x = self
+        while x.left is not None:
+            x = x.left
+        return x
+
+    def maximum_child(self):
+        x = self
+        while x.right is not None:
+            x = x.right
+        return x
+
+    def find(self, key):
+        x = self
+        while x is not None and key != x.key:
+            if key < x.key:
+                x = x.left
+            else:
+                x = x.right
+        return x
+
+    def successor(self):
+        if self.right is not None:
+            return self.right.minimum_child()
+
+        x = self
+        y = x.parent
+        while y is not None and x == y.right:
+            x = y
+            y = y.parent
+        return y
+
+    def __str__(self):
+        return "({} {} {})".format(
+            self.key, self.left, self.right)
+
+
 class Tree():
     def __init__(self):
         self.root = None
 
     def insert(self, z):
-
         y = None
         x = self.root
 
@@ -30,52 +73,28 @@ class Tree():
             y.right = z
 
     def find(self, key):
-        x = self.root
-        while x is not None:
-            if key == x.key:
-                return x
-            elif key < x.key:
-                x = x.left
-            else:
-                x = x.right
-        return None
-
-    def delete_node(self, x):
-        if x.left is None and x.right is None:
-            if x.parent is None:
-                self.root = None
-            elif x.parent.left == x:
-                x.parent.left = None
-            else:
-                x.parent.right = None
-        elif x.left is None:
-            if x.parent is None:
-                self.root = x.right
-            elif x.parent.left == x:
-                x.parent.left = x.right
-            else:
-                x.parent.right = x.right
-            x.right.parent = x.parent
-        elif x.right is None:
-            if x.parent is None:
-                self.root = x.left
-            elif x.parent.left == x:
-                x.parent.left = x.left
-            else:
-                x.parent.right = x.left
-            x.left.parent = x.parent
-
-    def delete(self, key):
-        x = self.find(key)
-        if x.left is None or x.right is None:
-            self.delete_node(x)
-        elif x.right.left is None:
-            x.key = x.right.key
-            self.delete_node(x.right)
+        if self.root is None:
+            return None
         else:
-            y = x.right.leftmost_child()
-            x.key = y.key
-            self.delete_node(y)
+            return self.root.find(key)
+
+    def delete(self, z):
+        y = z if z.left is None or z.right is None \
+            else z.successor()
+        x = y.right if y.left is None else y.left
+
+        if x is not None:
+            x.parent = y.parent
+
+        if y.parent is None:
+            self.root = x
+        elif y == y.parent.left:
+            y.parent.left = x
+        else:
+            y.parent.right = x
+
+        if y != z:
+            z.key = y.key
 
     def fold_inorder(self, f, init):
         def rec(node, b):
@@ -83,10 +102,9 @@ class Tree():
 
             if not node:
                 return b
-            else:
-                return rec(node.right,
-                           f(node.key,
-                             rec(node.left, b)))
+            return rec(node.right,
+                       f(node.key,
+                         rec(node.left, b)))
 
         return rec(self.root, init)
 
@@ -96,14 +114,12 @@ class Tree():
             [])
 
     def foreach_inorder(self, f):
-
         def rec(node):
             if not node:
                 return
-            else:
-                rec(node.left)
-                f(node.key)
-                rec(node.right)
+            rec(node.left)
+            f(node.key)
+            rec(node.right)
 
         rec(self.root)
 
@@ -114,14 +130,12 @@ class Tree():
         print()
 
     def print_preorder(self):
-
         def rec(node):
             if not node:
                 return
-            else:
-                print("", node.key, end="")
-                rec(node.left)
-                rec(node.right)
+            print("", node.key, end="")
+            rec(node.left)
+            rec(node.right)
 
         rec(self.root)
         print()
@@ -130,55 +144,8 @@ class Tree():
         return str(self.root) if self.root else "()"
 
 
-class Node():
-    def __init__(self, key, parent=None, left=None, right=None):
-        self.key = key
-        self.parent = parent
-        self.left = left
-        self.right = right
-
-    def rightmost_child(self):
-        x = self
-        while x.right is not None:
-            x = x.right
-        return x
-
-    def leftmost_child(self):
-        x = self
-        while x.left is not None:
-            x = x.left
-        return x
-
-    def __str__(self):
-        return "({} {} {})".format(
-            self.key, self.left, self.right)
-
-
-def process(commands):
-    T = Tree()
-    for cmd in commands:
-        if cmd[0] == "insert":
-            T.insert(Node(int(cmd[1])))
-        elif cmd[0] == "find":
-            print("yes" if T.find(int(cmd[1])) else "no")
-        elif cmd[0] == "delete":
-            T.delete(int(cmd[1]))
-        elif cmd[0] == "print":
-            T.print_inorder()
-            T.print_preorder()
-    return T
-
-
-def main():
-    _ = int(stdin.readline())
-    commands = []
-    for line in stdin:
-        commands.append(line.split())
-    process(commands)
-
-
 def random_test_repr(n, p, q, T):
-    return "n:{}\np:{}\nq:{}\nT:{}".format(
+    return "n={}\np={}\nq={}\nT={}".format(
         n, p, q, str(T))
 
 
@@ -201,7 +168,7 @@ def test_a_random_case(p, q):
             random_test_repr(n, p, q, str(T))
 
     for n in q:
-        T.delete(n)
+        T.delete(T.find(n))
         assert not T.find(n), \
             "After Delete:\n" + \
             random_test_repr(n, p, q, str(T))
@@ -231,7 +198,34 @@ def random_test():
             random_array(L), random_array(L))
 
 
+p = [6, 1, 0, 4, 2, 3, 5]
+q = [1, 2, 0, 5, 3, 4, 6]
+test_a_random_case(p, q)
 random_test()
 exit()
+
+
+def process(commands):
+    T = Tree()
+    for cmd in commands:
+        if cmd[0] == "insert":
+            T.insert(Node(int(cmd[1])))
+        elif cmd[0] == "find":
+            print("yes" if T.find(int(cmd[1])) else "no")
+        elif cmd[0] == "delete":
+            T.delete(T.find(int(cmd[1])))
+        elif cmd[0] == "print":
+            T.print_inorder()
+            T.print_preorder()
+    return T
+
+
+def main():
+    _ = int(stdin.readline())
+    commands = []
+    for line in stdin:
+        commands.append(line.split())
+    process(commands)
+
 
 main()
