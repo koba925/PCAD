@@ -198,13 +198,6 @@ def random_test():
             random_array(L), random_array(L))
 
 
-p = [6, 1, 0, 4, 2, 3, 5]
-q = [1, 2, 0, 5, 3, 4, 6]
-test_a_random_case(p, q)
-random_test()
-exit()
-
-
 def process(commands):
     T = Tree()
     for cmd in commands:
@@ -228,4 +221,5 @@ def main():
     process(commands)
 
 
+# random_test()
 main()
