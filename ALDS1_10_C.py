@@ -5,19 +5,25 @@ from sys import setrecursionlimit
 from functools import lru_cache
 
 
-@lru_cache()
 def lcs(s1, s2):
-    if s1 == "" or s2 == "":
-        return 0
 
-    first = s1[0]
-    rest = s1[1:]
+    @lru_cache()
+    def rec(i1, i2):
+        nonlocal s1, l1, s2, l2
 
-    index = s2.find(first)
-    if index == -1:
-        return lcs(rest, s2)
-    else:
-        return max(lcs(rest, s2[index+1:]) + 1, lcs(rest, s2))
+        if i1 == l1 or i2 == l2:
+            return 0
+
+        index = s2.find(s1[i1], i2)
+        if index == -1:
+            return rec(i1 + 1, i2)
+        else:
+            return max(rec(i1 + 1, index + 1) + 1,
+                       rec(i1 + 1, i2))
+
+    l1 = len(s1)
+    l2 = len(s2)
+    return rec(0, 0)
 
 
 def main():
