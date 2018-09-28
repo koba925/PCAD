@@ -14,12 +14,11 @@ def lcs(s1, s2):
         if i1 == l1 or i2 == l2:
             return 0
 
-        index = s2.find(s1[i1], i2)
-        if index == -1:
-            return rec(i1 + 1, i2)
+        if s1[i1] == s2[i2]:
+            return rec(i1 + 1, i2 + 1) + 1
         else:
-            return max(rec(i1 + 1, index + 1) + 1,
-                       rec(i1 + 1, i2))
+            return max(rec(i1 + 1, i2),
+                       rec(i1, i2 + 1))
 
     l1 = len(s1)
     l2 = len(s2)
