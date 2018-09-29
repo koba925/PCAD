@@ -7,22 +7,24 @@ from functools import lru_cache
 
 def lcs(s1, s2):
 
-    @lru_cache()
-    def rec(i1, i2):
-        nonlocal s1, l1, s2, l2
-
-        if i1 == l1 or i2 == l2:
-            return 0
-
-        if s1[i1] == s2[i2]:
-            return rec(i1 + 1, i2 + 1) + 1
-        else:
-            return max(rec(i1 + 1, i2),
-                       rec(i1, i2 + 1))
-
     l1 = len(s1)
     l2 = len(s2)
-    return rec(0, 0)
+    c = [[0] * (l2 + 1) for _ in range(l1 + 1)]
+
+    maxl = 0
+    s1 = " " + s1
+    s2 = " " + s2
+
+    for i1 in range(1, l1 + 1):
+        for i2 in range(1, l2 + 1):
+            if s1[i1] == s2[i2]:
+                c[i1][i2] = c[i1 - 1][i2 - 1] + 1
+            else:
+                c[i1][i2] = max(c[i1 - 1][i2],
+                                c[i1][i2 - 1])
+            maxl = max(maxl, c[i1][i2])
+
+    return maxl
 
 
 def main():
