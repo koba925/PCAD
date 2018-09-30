@@ -23,8 +23,6 @@ class TestLcs(unittest.TestCase):
         self.assertEqual(lcs("AT", "TA"), 1)
         self.assertEqual(lcs("TA", "TA"), 2)
         self.assertEqual(lcs("TCCAGATGG", "TCACA"), 4)
-        self.assertEqual(lcs("ILCPSKLRYVMCPJNBPBWLLILCPSKLRYVMCPJNBPBWLLaaaaa",
-                             "SJOJVJKHELMWQQCAMHYRESJOJVJKHELMWQQCAMHYREaaaaa"), 324)
 
 
 if __name__ == '__main__':
