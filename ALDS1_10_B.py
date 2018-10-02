@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 
 from sys import maxsize
+from functools import lru_cache
 
 
 def count_2(m1, m2):
@@ -13,6 +14,7 @@ def result_2(m1, m2):
     return (m1[0], m2[1])
 
 
+# @lru_cache()
 def count(m):
     assert len(m) > 0
 
@@ -43,7 +45,7 @@ def main():
     m = []
     for _ in range(n):
         m.append(tuple(int(x) for x in input().split()))
-    _, c = count(m)
+    _, c = count(tuple(m))
     print(c)
 
 
