@@ -1,53 +1,63 @@
 class Node():
-    def __init__(self, v):
+    Node.WHITE = 0
+    Node.GRAY = 1
+    Node.BLACK = 2
+
+    def __init__(self):
+        self.u = Node.WHITE
         self.d = 0
         self.f = 0
-        self.v = v
 
     def __repr__(self):
-        return "Node({},{},{})".format(
-            self.d, self.f, self.v)
+        return "Node({},{})".format(
+            self.d, self.f)
 
 
-def read_node():
+def read_adj():
     n = int(input())
-    adj_list = [[] for _ in range(n + 1)]
+    adj_mat = [[0] * (n + 1) for _ in range(n + 1)]
 
     for _ in range(n):
         id, _, *v = [int(x) for x in input().split()]
-        adj_list[id] = Node(v)
+        for adj_id in v:
+            adj_mat[id][adj_id] = 1
 
-    return adj_list
+    return n, adj_mat
 
 
-def depth_first_search(adj_list):
+def depth_first_search(n, adj_mat):
+    nodes = [Node() for _ in range(n + 1)]
+    timestamp = 1
+
     def dfs(id):
-        nonlocal adj_list, timestamp
+        nonlocal adj_mat, n, nodes, timestamp
 
-        adj_list[id].d = timestamp
-        for adj_id in adj_list[id].v:
-            if adj_list[adj_id].d == 0:
+        nodes[id].d = timestamp
+        for adj_id in range(1, n + 1):
+            if adj_mat[id][adj_id] == 1 and \
+                    nodes[adj_id].d == 0:
                 timestamp += 1
                 dfs(adj_id)
         timestamp += 1
-        adj_list[id].f = timestamp
+        nodes[id].f = timestamp
 
-    timestamp = 1
-    for id in range(1, len(adj_list)):
-        if adj_list[id].d == 0:
+    for id in range(1, n + 1):
+        if nodes[id].d == 0:
             dfs(id)
             timestamp += 1
 
+    return nodes
 
-def print_result(adj_list):
-    for id in range(1, len(adj_list)):
-        print(id, adj_list[id].d, adj_list[id].f)
+
+def print_result(n, nodes):
+    for id in range(1, n + 1):
+        print(id, nodes[id].d, nodes[id].f)
 
 
 def main():
-    adj_list = read_node()
-    depth_first_search(adj_list)
-    print_result(adj_list)
+    n, adj_mat = read_adj()
+    nodes = depth_first_search(n, adj_mat)
+    print_result(n, nodes)
 
 
 if __name__ == '__main__':
