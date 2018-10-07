@@ -1,7 +1,7 @@
 class Node():
-    Node.WHITE = 0
-    Node.GRAY = 1
-    Node.BLACK = 2
+    WHITE = 0
+    GRAY = 1
+    BLACK = 2
 
     def __init__(self):
         self.u = Node.WHITE
@@ -32,17 +32,19 @@ def depth_first_search(n, adj_mat):
     def dfs(id):
         nonlocal adj_mat, n, nodes, timestamp
 
+        nodes[id].u = Node.GRAY
         nodes[id].d = timestamp
         for adj_id in range(1, n + 1):
             if adj_mat[id][adj_id] == 1 and \
-                    nodes[adj_id].d == 0:
+                    nodes[adj_id].u == Node.WHITE:
                 timestamp += 1
                 dfs(adj_id)
+        nodes[id].u = Node.BLACK
         timestamp += 1
         nodes[id].f = timestamp
 
     for id in range(1, n + 1):
-        if nodes[id].d == 0:
+        if nodes[id].u == Node.WHITE:
             dfs(id)
             timestamp += 1
 
