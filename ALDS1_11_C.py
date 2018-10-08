@@ -13,16 +13,17 @@ def read_adj():
 def shortest_paths(n, adj_list, ini_key):
     dist = [maxsize] * (n + 1)
 
-    def visit(key, d):
-        nonlocal adj_list
+    S = [ini_key]
+    dist[ini_key] = 0
 
-        dist[key] = d
-        d += 1
+    while S != []:
+        key = S.pop()
+        d = dist[key] + 1
         for k in adj_list[key]:
             if d < dist[k]:
-                visit(k, d)
+                dist[k] = d
+                S.append(k)
 
-    visit(ini_key, 0)
     return dist
 
 
