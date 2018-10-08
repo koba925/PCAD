@@ -5,12 +5,13 @@ class Node():
 
     def __init__(self):
         self.u = Node.WHITE
+        self.nt = 0
         self.d = 0
         self.f = 0
 
     def __repr__(self):
-        return "Node({},{})".format(
-            self.d, self.f)
+        return "Node({},{},{},{})".format(
+            self.u, self.nt, self.d, self.f)
 
 
 def read_adj():
@@ -29,19 +30,34 @@ def depth_first_search(n, adj_mat):
     nodes = [Node() for _ in range(n + 1)]
     timestamp = 1
 
+    def next(u):
+        for v in range(nodes[u].nt, n + 1):
+            nodes[u].nt += 1
+            if adj_mat[u][v] == 1:
+                return v
+        return - 1
+
     def dfs(id):
         nonlocal adj_mat, n, nodes, timestamp
 
+        S = []
+        S.append(id)
         nodes[id].u = Node.GRAY
         nodes[id].d = timestamp
-        for adj_id in range(1, n + 1):
-            if adj_mat[id][adj_id] == 1 and \
-                    nodes[adj_id].u == Node.WHITE:
+        while S != []:
+            u = S[-1]
+            v = next(u)
+            if v != -1:
+                if nodes[v].u == Node.WHITE:
+                    nodes[v].u = Node.GRAY
+                    timestamp += 1
+                    nodes[v].d = timestamp
+                    S.append(v)
+            else:
+                S.pop()
+                nodes[u].u = Node.BLACK
                 timestamp += 1
-                dfs(adj_id)
-        nodes[id].u = Node.BLACK
-        timestamp += 1
-        nodes[id].f = timestamp
+                nodes[u].f = timestamp
 
     for id in range(1, n + 1):
         if nodes[id].u == Node.WHITE:
