@@ -1,3 +1,4 @@
+from collections import deque
 from sys import maxsize
 
 
@@ -13,11 +14,12 @@ def read_adj():
 def shortest_paths(n, adj_list, ini_key):
     dist = [maxsize] * (n + 1)
 
-    S = [ini_key]
+    S = deque()
+    S.append(ini_key)
     dist[ini_key] = 0
 
-    while S != []:
-        key = S.pop()
+    while S:
+        key = S.popleft()
         d = dist[key] + 1
         for k in adj_list[key]:
             if d < dist[k]:
