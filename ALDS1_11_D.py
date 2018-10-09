@@ -1,6 +1,3 @@
-from sys import setrecursionlimit
-
-
 def read_friends():
     n, m = [int(x) for x in input().split()]
     adj_list = [set() for _ in range(n)]
@@ -16,16 +13,19 @@ def read_friends():
 def divide_group(n, adj_list):
     group = [None] * n
 
-    def visit(k, g, level):
-        print(level)
-        group[k] = g
-        for t in adj_list[k]:
-            if group[t] is None:
-                visit(t, g, level + 1)
+    def visit(k, g):
+        S = [k]
+
+        while S:
+            k = S.pop()
+            group[k] = g
+            for t in adj_list[k]:
+                if group[t] is None:
+                    S.append(t)
 
     for k in range(n):
         if group[k] is None:
-            visit(k, k, 1)
+            visit(k, k)
 
     return group
 
@@ -39,8 +39,6 @@ def answer_queries(group):
 
 
 def main():
-    setrecursionlimit(10001)
-
     n, adj_list = read_friends()
     group = divide_group(n, adj_list)
     answer_queries(group)
