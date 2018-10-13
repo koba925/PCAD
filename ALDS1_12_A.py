@@ -1,46 +1,54 @@
 from sys import maxsize
 from functools import reduce
 
+WHITE = 0
+GRAY = 1
+BLACK = 2
+
 
 def read_adj_mat():
     n = int(input())
-    adj_mat = [None] * (n + 1)
-    for i in range(1, n + 1):
-        adj_mat[i] = [None] + [int(x) for x in input().split()]
-    return n, adj_mat
+    M = []
+    for _ in range(n):
+        M.append([maxsize if x == "-1" else int(x)
+                  for x
+                  in input().split()])
+    return n, M
 
 
-def min_sp_tree(n, adj_mat):
-    T = set([1])
-    V = set(range(1, n + 1))
-    mst = []
+def min_sp_tree(n, M):
+    d = [maxsize] * n
+    p = [-1] * n
+    color = [WHITE] * n
 
-    while T != V:
-        min_edge = None
-        min_edge_weight = maxsize
+    d[0] = 0
 
-        for p in T:
-            for u in range(1, n + 1):
-                w = adj_mat[p][u]
-                if u in T or w < 0:
-                    continue
-                if w < min_edge_weight:
-                    min_edge_weight = w
-                    min_edge = (p, u)
-        T.add(min_edge[1])
-        mst.append((min_edge, min_edge_weight))
+    while True:
+        minv = maxsize
+        u = -1
 
-    return mst
+        for i in range(n):
+            if minv > d[i] and color[i] != BLACK:
+                u = i
+                minv = d[i]
 
+        if u == -1:
+            break
 
-def mst_weight(mst):
-    return reduce(lambda sum, a: sum + a[1], mst, 0)
+        color[u] = BLACK
+        for v in range(n):
+            if color[v] != BLACK and M[u][v] != maxsize:
+                if d[v] > M[u][v]:
+                    d[v] = M[u][v]
+                    p[v] = u
+                    color[v] = GRAY
+
+    return sum([M[i][p[i]] for i in range(n) if p[i] != -1])
 
 
 def main():
-    n, adj_mat = read_adj_mat()
-    mst = min_sp_tree(n, adj_mat)
-    print(mst_weight(mst))
+    n, M = read_adj_mat()
+    print(min_sp_tree(n, M))
 
 
 if __name__ == '__main__':
