@@ -1,9 +1,8 @@
 from sys import maxsize
 
-
-def twos(a):
-    for i in range(0, len(a) - 1, 2):
-        yield (a[i], a[i + 1])
+WHITE = 0
+GRAY = 1
+BLACK = 2
 
 
 def read_adj():
@@ -18,16 +17,29 @@ def read_adj():
 
 
 def shortest_path(n, adj_list):
+    color = [WHITE] * n
     dist = [maxsize] * n
 
-    def walk(u):
+    dist[0] = 0
+    color[0] = GRAY
+
+    while True:
+        minv = maxsize
+        u = -1
+        for i in range(n):
+            if minv > dist[i] and color[i] != BLACK:
+                u = i
+                minv = dist[i]
+
+        if u == -1:
+            break
+        color[u] = BLACK
+
         for v, c in adj_list[u]:
             if dist[u] + c < dist[v]:
                 dist[v] = dist[u] + c
-                walk(v)
+                color[v] = GRAY
 
-    dist[0] = 0
-    walk(0)
     return dist
 
 
