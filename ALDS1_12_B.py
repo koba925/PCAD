@@ -1,57 +1,60 @@
 from sys import maxsize
 
-WHITE = 0
-GRAY = 1
-BLACK = 2
+
+class Node:
+    WHITE = 0
+    GRAY = 1
+    BLACK = 2
+
+    def __init__(self):
+        self.adjs = []
+        self.color = Node.WHITE
+        self.dist = maxsize
+
+    def __repr__(self):
+        return "Node({},{},{})".format(self.adjs, self.color, self.dist)
 
 
 def read_adj():
     n = int(input())
-    adj_list = [[] for _ in range(n)]
+    nodes = [Node() for _ in range(n)]
+
     for i in range(n):
         u, _, *rest = [int(x) for x in input().split()]
         for i in range(0, len(rest) - 1, 2):
-            adj_list[u].append((rest[i], rest[i + 1]))
+            nodes[u].adjs.append((nodes[rest[i]], rest[i+1]))
 
-    return n, adj_list
+    return nodes
 
 
-def shortest_path(n, adj_list):
-    color = [WHITE] * n
-    dist = [maxsize] * n
-
-    dist[0] = 0
-    color[0] = GRAY
+def shortest_path(nodes):
+    nodes[0].dist = 0
+    nodes[0].color = Node.GRAY
 
     while True:
-        minv = maxsize
-        u = -1
-        for i in range(n):
-            if minv > dist[i] and color[i] != BLACK:
-                u = i
-                minv = dist[i]
+        min_node = min(
+            [n for n in nodes if n.color != Node.BLACK],
+            default=None, key=lambda n: n.dist)
 
-        if u == -1:
+        if min_node is None:
             break
-        color[u] = BLACK
+        min_node.color = Node.BLACK
 
-        for v, c in adj_list[u]:
-            if dist[u] + c < dist[v]:
-                dist[v] = dist[u] + c
-                color[v] = GRAY
-
-    return dist
+        for adj, c in min_node.adjs:
+            if min_node.dist + c < adj.dist:
+                adj.dist = min_node.dist + c
+                adj.color = Node.GRAY
 
 
-def print_dist(dist):
-    for u, d in enumerate(dist):
-        print(u, d)
+def print_dist(nodes):
+    for u, n in enumerate(nodes):
+        print(u, n.dist)
 
 
 def main():
-    n, adj_list = read_adj()
-    dist = shortest_path(n, adj_list)
-    print_dist(dist)
+    nodes = read_adj()
+    shortest_path(nodes)
+    print_dist(nodes)
 
 
 if __name__ == '__main__':
