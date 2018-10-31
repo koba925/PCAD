@@ -1,42 +1,36 @@
-from sys import stdin
-
-
-class DisjointSet():
+class DisjointSetElement():
     def __init__(self):
         self.parent = None
-        self.ancestor = self
+        self.anc = self
 
+    def ancestor(self):
+        s = self.anc
+        while s.parent is not None:
+            s = s.parent
+        self.anc = s
+        return s
 
-def ancestor(elems, x):
-    s = elems[x].ancestor
-    while s.parent is not None:
-        s = s.parent
-    elems[x].ancestor = s
-    return s
+    def unite(self, y):
+        ax = self.ancestor()
+        ay = y.ancestor()
+        if ax is not ay:
+            ax.parent = ay
+            ax.anc = ay.anc
 
-
-def unite(elems, x, y):
-    ax = ancestor(elems, x)
-    ay = ancestor(elems, y)
-    if ax is not ay:
-        ax.parent = ay
-        ax.ancestor = ay.ancestor
-
-
-def same(elems, x, y):
-    return ancestor(elems, x) is ancestor(elems, y)
+    def same(self, y):
+        return self.ancestor() is y.ancestor()
 
 
 def main():
     n, q = [int(x) for x in input().split()]
-    elems = [DisjointSet() for _ in range(n)]
+    elems = [DisjointSetElement() for _ in range(n)]
 
     for _ in range(q):
         com, x, y = [int(x) for x in input().split()]
         if com == 0:
-            unite(elems, x, y)
+            elems[x].unite(elems[y])
         else:
-            print(1 if same(elems, x, y) else 0)
+            print(1 if elems[x].same(elems[y]) else 0)
 
 
 if __name__ == '__main__':
