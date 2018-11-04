@@ -1,14 +1,13 @@
 import copy
-from sys import setrecursionlimit
 
 
 class Area():
-    MAX = 1000000000
+    MAX = 2000000000
     MIN = -MAX
 
     def __init__(self):
-        self.sx = self.sy = tr(Area.MIN)
-        self.tx = self.ty = tr(Area.MAX)
+        self.sx = self.sy = Area.MIN
+        self.tx = self.ty = Area.MAX
         self.indices = None
         self.lb_area = self.rt_area = None
 
@@ -27,7 +26,7 @@ def read_points():
     points = []
     for _ in range(n):
         x, y = [int(x) for x in input().split()]
-        points.append((tr(x), tr(y)))
+        points.append((x * 2, y * 2))
     return points
 
 
@@ -129,15 +128,14 @@ def process_queries(points, tree):
     q = int(input())
     for _ in range(q):
         sx, tx, sy, ty = [int(x) for x in input().split()]
-        found = find_points(tr(sx) - 1, tr(tx) + 1,
-                            tr(sy) - 1, tr(ty) + 1, points, tree)
+        found = find_points(sx * 2 - 1, tx * 2 + 1,
+                            sy * 2 - 1, ty * 2 + 1, points, tree)
         print(*found, sep="\n")
         if found:
             print()
 
 
 def main():
-    # setrecursionlimit(1000)
     points = read_points()
     tree = make_area_tree(points)
     process_queries(points, tree)
