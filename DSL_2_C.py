@@ -7,8 +7,8 @@ class Area():
     MIN = -MAX
 
     def __init__(self):
-        self.sx = self.sy = Area.MIN
-        self.tx = self.ty = Area.MAX
+        self.sx = self.sy = tr(Area.MIN)
+        self.tx = self.ty = tr(Area.MAX)
         self.indices = None
         self.lb_area = self.rt_area = None
 
@@ -18,12 +18,16 @@ class Area():
             self.indices, self.lb_area, self.rt_area)
 
 
+def tr(x):
+    return x * 2
+
+
 def read_points():
     n = int(input())
     points = []
     for _ in range(n):
         x, y = [int(x) for x in input().split()]
-        points.append((x, y))
+        points.append((tr(x), tr(y)))
     return points
 
 
@@ -125,7 +129,8 @@ def process_queries(points, tree):
     q = int(input())
     for _ in range(q):
         sx, tx, sy, ty = [int(x) for x in input().split()]
-        found = find_points(sx - .5, tx + .5, sy - .5, ty + .5, points, tree)
+        found = find_points(tr(sx) - 1, tr(tx) + 1,
+                            tr(sy) - 1, tr(ty) + 1, points, tree)
         print(*found, sep="\n")
         if found:
             print()
@@ -141,7 +146,7 @@ def main():
 """
 points = [(2, 1), (2, 2), (4, 2), (6, 2), (3, 3), (5, 4)]
 tree = make_area_tree(points)
-print(find_points(2.5, 6.5, 0.5, 2.5, points, tree))
+print(find_points(1, 6, 0, 3, points, tree))
 exit()
 """
 
