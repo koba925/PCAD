@@ -2,158 +2,112 @@ import copy
 from sys import stdin, setrecursionlimit
 
 
-class Area():
-    MAX = 2000000000
-    MIN = -MAX
-
+class Node():
     def __init__(self):
-        self.sx = self.sy = Area.MIN
-        self.tx = self.ty = Area.MAX
-        self.indices = None
-        self.lb_area = self.rt_area = None
+        self.location = None
+        self.p = self.l = self.r = None
 
     def __repr__(self):
-        return "Area({}, {}, {}, {}, {}, {}, {})".format(
-            self.sx, self.sy, self.tx, self.ty,
-            self.indices, self.lb_area, self.rt_area)
+        return "Node({}, {}, {}, {}, {})".format(
+            self.location, self.p, self.l, self.r)
 
 
-def tr(x):
-    return x * 2
+class Point():
+    MAX = 1000000
+
+    def __init__(self, id=None, x=None, y=None):
+        self.id = id
+        self.x = x
+        self.y = y
+
+    def __lt__(self, other):
+        return self.id < other.id
+
+    def __repr__(self):
+        return "Point({}, {}, {})".format(
+            self.id, self.x, self.y)
+
+
+np = 0
+P = []
+T = []
 
 
 def read_points():
+    global P, T
+
     n = int(stdin.readline())
-    points = []
-    for _ in range(n):
+    for i in range(n):
         x, y = [int(x) for x in stdin.readline().split()]
-        points.append((x * 2, y * 2))
-    return points
+        P.append(Point(i, x, y))
+        T.append(Node())
+    return n
 
 
-# dir = 0 -> 左右に分割
-# dir = 1 -> 上下に分割
+def make_kd_tree(l, r, depth):
+    global np, P, T
 
-from random import randrange
+    if l >= r:
+        return None
 
+    mid = (l + r) // 2
+    t = np
+    np += 1
 
-def find_mid(points, indices, dir):
-    # s = sorted(set(points[x][dir] for x in indices))
-    # return s[len(s)//2]
-    return points[indices[randrange(len(indices))]][dir]
+    if depth % 2 == 0:
+        P[l:r] = sorted(P[l:r], key=lambda p: p.x)
+    else:
+        P[l:r] = sorted(P[l:r], key=lambda p: p.y)
+    T[t].location = mid
+    T[t].l = make_kd_tree(l, mid, depth + 1)
+    T[t].r = make_kd_tree(mid + 1, r, depth + 1)
 
-
-def partition(points, mid, indices, dir):
-    lb_indices = []
-    rt_indices = []
-    for i in indices:
-        if points[i][dir] < mid:
-            lb_indices.append(i)
-        else:
-            rt_indices.append(i)
-    return lb_indices, rt_indices
+    return t
 
 
-def divide_area(points, area, dir):
+def find(v, sx, tx, sy, ty, depth, ans):
+    global P, T
 
-    if len(area.indices) <= 1:
-        return
+    x = P[T[v].location].x
+    y = P[T[v].location].y
 
-    # area.indices.sort(key=lambda x: points[x][dir])
-    mid = find_mid(points, area.indices, dir)
-    lb_indices, rt_indices = partition(points, mid, area.indices, dir)
+    if sx <= x <= tx and sy <= y <= ty:
+        ans.append(P[T[v].location])
 
-    lb_area = rt_area = None
-    if lb_indices:
-        lb_area = copy.copy(area)
-        if dir == 0:
-            lb_area.tx = mid
-        else:
-            lb_area.ty = mid
-        lb_area.indices = lb_indices
-        divide_area(points, lb_area, 1-dir)
-    if rt_indices:
-        rt_area = copy.copy(area)
-        if dir == 0:
-            rt_area.sx = mid
-        else:
-            rt_area.sy = mid
-        rt_area.indices = rt_indices
-        divide_area(points, rt_area, 1-dir)
-    area.lb_area = lb_area
-    area.rt_area = rt_area
+    if depth % 2 == 0:
+        if T[v].l is not None:
+            if sx <= x:
+                find(T[v].l, sx, tx, sy, ty, depth + 1, ans)
+        if T[v].r is not None:
+            if x <= tx:
+                find(T[v].r, sx, tx, sy, ty, depth + 1, ans)
+    else:
+        if T[v].l is not None:
+            if sy <= y:
+                find(T[v].l, sx, tx, sy, ty, depth + 1, ans)
+        if T[v].r is not None:
+            if y <= ty:
+                find(T[v].r, sx, tx, sy, ty, depth + 1, ans)
 
 
-def make_area_tree(points):
-    tree = Area()
-    tree.indices = list(range(len(points)))
-    divide_area(points, tree, 0)
-    return tree
+def process_queries(root):
+    global P
 
-
-def pick_points(sx, tx, sy, ty, points):
-    for i in range(len(points)):
-        if sx <= points[i][0] <= tx and \
-           sy <= points[i][1] <= ty:
-            print(i)
-    print()
-
-
-def find_points(sx, tx, sy, ty, points, tree):
-
-    found = []
-
-    def rec(area):
-        nonlocal points, found
-
-        if tx < area.sx or area.tx < sx or \
-           ty < area.sy or area.ty < sy:
-            return
-        if sx < area.sx and area.tx < tx and \
-           sy < area.sy and area.ty < ty:
-            found += area.indices
-            return
-        if area.lb_area is None and area.rt_area is None:
-            if area.indices:
-                i = area.indices[0]
-                p = points[i]
-                if sx < p[0] < tx and sy < p[1] < ty:
-                    found.append(i)
-            return
-        if area.lb_area is not None:
-            rec(area.lb_area)
-        if area.rt_area is not None:
-            rec(area.rt_area)
-
-    rec(tree)
-    found.sort()
-    return found
-
-
-def process_queries(points, tree):
     q = int(stdin.readline())
     for i in range(q):
         sx, tx, sy, ty = [int(x) for x in stdin.readline().split()]
-        found = find_points(sx * 2 - 1, tx * 2 + 1,
-                            sy * 2 - 1, ty * 2 + 1, points, tree)
-        print(*found, sep="\n")
-        if found:
-            print()
+        ans = []
+        find(root, sx, tx, sy, ty, 0, ans)
+        [print(a.id) for a in sorted(ans)]
+        print()
 
 
 def main():
     setrecursionlimit(100)
-    points = read_points()
-    tree = make_area_tree(points)
-    process_queries(points, tree)
+    n = read_points()
+    root = make_kd_tree(0, n, 0)
+    process_queries(root)
 
-
-"""
-points = [(2, 1), (2, 2), (4, 2), (6, 2), (3, 3), (5, 4)]
-tree = make_area_tree(points)
-print(find_points(1, 6, 0, 3, points, tree))
-exit()
-"""
 
 if __name__ == '__main__':
     main()
