@@ -1,4 +1,5 @@
 import copy
+from sys import stdin, setrecursionlimit
 
 
 class Area():
@@ -22,10 +23,10 @@ def tr(x):
 
 
 def read_points():
-    n = int(input())
+    n = int(stdin.readline())
     points = []
     for _ in range(n):
-        x, y = [int(x) for x in input().split()]
+        x, y = [int(x) for x in stdin.readline().split()]
         points.append((x * 2, y * 2))
     return points
 
@@ -33,8 +34,13 @@ def read_points():
 # dir = 0 -> 左右に分割
 # dir = 1 -> 上下に分割
 
+from random import randrange
+
+
 def find_mid(points, indices, dir):
-    return points[indices[len(indices) // 2]][dir]
+    # s = sorted(set(points[x][dir] for x in indices))
+    # return s[len(s)//2]
+    return points[indices[randrange(len(indices))]][dir]
 
 
 def partition(points, mid, indices, dir):
@@ -53,7 +59,7 @@ def divide_area(points, area, dir):
     if len(area.indices) <= 1:
         return
 
-    area.indices.sort(key=lambda x: points[x][dir])
+    # area.indices.sort(key=lambda x: points[x][dir])
     mid = find_mid(points, area.indices, dir)
     lb_indices, rt_indices = partition(points, mid, area.indices, dir)
 
@@ -125,9 +131,9 @@ def find_points(sx, tx, sy, ty, points, tree):
 
 
 def process_queries(points, tree):
-    q = int(input())
-    for _ in range(q):
-        sx, tx, sy, ty = [int(x) for x in input().split()]
+    q = int(stdin.readline())
+    for i in range(q):
+        sx, tx, sy, ty = [int(x) for x in stdin.readline().split()]
         found = find_points(sx * 2 - 1, tx * 2 + 1,
                             sy * 2 - 1, ty * 2 + 1, points, tree)
         print(*found, sep="\n")
@@ -136,6 +142,7 @@ def process_queries(points, tree):
 
 
 def main():
+    setrecursionlimit(100)
     points = read_points()
     tree = make_area_tree(points)
     process_queries(points, tree)
