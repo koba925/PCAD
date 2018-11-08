@@ -71,14 +71,14 @@ def find(P, root, sx, tx, sy, ty):
             ans.append(P[node.location])
 
         if depth % 2 == 0:
-            if node.l is not None and sx <= x:
+            if node.l and sx <= x:
                 rec(node.l, depth + 1)
-            if node.r is not None and x <= tx:
+            if node.r and x <= tx:
                 rec(node.r, depth + 1)
         else:
-            if node.l is not None and sy <= y:
+            if node.l and sy <= y:
                 rec(node.l, depth + 1)
-            if node.r is not None and y <= ty:
+            if node.r and y <= ty:
                 rec(node.r, depth + 1)
 
     rec(root, 0)
