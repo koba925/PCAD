@@ -62,36 +62,42 @@ def make_kd_tree(P):
     return root, T
 
 
-def find(P, T, v, sx, tx, sy, ty, depth, ans):
+def find(P, T, root, sx, tx, sy, ty):
+    ans = []
 
-    x = P[T[v].location].x
-    y = P[T[v].location].y
+    def rec(v, depth):
+        nonlocal P, T, sx, tx, sy, ty, ans
 
-    if sx <= x <= tx and sy <= y <= ty:
-        ans.append(P[T[v].location])
+        x = P[T[v].location].x
+        y = P[T[v].location].y
 
-    if depth % 2 == 0:
-        if T[v].l is not None:
-            if sx <= x:
-                find(P, T, T[v].l, sx, tx, sy, ty, depth + 1, ans)
-        if T[v].r is not None:
-            if x <= tx:
-                find(P, T, T[v].r, sx, tx, sy, ty, depth + 1, ans)
-    else:
-        if T[v].l is not None:
-            if sy <= y:
-                find(P, T, T[v].l, sx, tx, sy, ty, depth + 1, ans)
-        if T[v].r is not None:
-            if y <= ty:
-                find(P, T, T[v].r, sx, tx, sy, ty, depth + 1, ans)
+        if sx <= x <= tx and sy <= y <= ty:
+            ans.append(P[T[v].location])
+
+        if depth % 2 == 0:
+            if T[v].l is not None:
+                if sx <= x:
+                    rec(T[v].l, depth + 1)
+            if T[v].r is not None:
+                if x <= tx:
+                    rec(T[v].r, depth + 1)
+        else:
+            if T[v].l is not None:
+                if sy <= y:
+                    rec(T[v].l, depth + 1)
+            if T[v].r is not None:
+                if y <= ty:
+                    rec(T[v].r, depth + 1)
+
+    rec(root, 0)
+    return ans
 
 
 def process_queries(P, T, root):
     q = int(stdin.readline())
     for i in range(q):
         sx, tx, sy, ty = [int(x) for x in stdin.readline().split()]
-        ans = []
-        find(P, T, root, sx, tx, sy, ty, 0, ans)
+        ans = find(P, T, root, sx, tx, sy, ty)
         [print(a.id) for a in sorted(ans)]
         print()
 
