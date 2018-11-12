@@ -1,7 +1,4 @@
 INF = 2000000000
-NEG = -1
-COMP = 0
-CONT = 1
 
 
 def read_adj_mat():
@@ -13,37 +10,18 @@ def read_adj_mat():
     return A
 
 
-def step(A):
-    result = COMP
-    n = len(A)
-    D = [fr[:] for fr in A]
-    for fr in range(n):
-        for to in range(n):
-            here = A[fr][to]
-            if fr == to or here == INF:
+def get_shortest_paths(D):
+    n = len(D)
+    for to in range(n):
+        for fr in range(n):
+            here = D[fr][to]
+            if here == INF:
                 continue
             for to2 in range(n):
-                here2 = A[to][to2]
-                if to == to2 or here2 == INF:
+                here2 = D[to][to2]
+                if here2 == INF:
                     continue
-                new = here + here2
-                if fr == to2 and new < 0:
-                    return NEG, None
-                elif new < D[fr][to2]:
-                    D[fr][to2] = new
-                    result = CONT
-    return result, D
-
-
-def get_shortest_paths(A):
-
-    while True:
-        result, D = step(A)
-        if result == NEG:
-            return NEG, None
-        elif result == COMP:
-            return COMP, D
-        A = D
+                D[fr][to2] = min(D[fr][to2], here + here2)
 
 
 def print_result(D):
@@ -59,10 +37,12 @@ def print_result(D):
 
 
 def main():
-    A = read_adj_mat()
-    result, D = get_shortest_paths(A)
-    if result == NEG:
-        print("NEGATIVE CYCLE")
+    D = read_adj_mat()
+    get_shortest_paths(D)
+    for d in [D[x][x] for x in range(len(D))]:
+        if d < 0:
+            print("NEGATIVE CYCLE")
+            break
     else:
         print_result(D)
 
