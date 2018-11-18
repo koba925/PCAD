@@ -1,41 +1,35 @@
 class Node():
+    lt_table = {}
+
     def __init__(self, id):
         self.id = id
         self.adj = []
 
     def __lt__(self, other):
-        print("__lt__")
-        S = []
-        S.append(self)
+        def lt():
+            S = []
+            S.append(self)
 
-        while S:
-            v = S.pop()
-            for a in v.adj:
-                if other == a:
-                    return True
-                else:
-                    S.append(a)
-        return False
+            while S:
+                v = S.pop()
+                for a in v.adj:
+                    if other == a:
+                        return True
+                    else:
+                        S.append(a)
+            return False
+        """
+        if (self.id, other.id) in Node.lt_table:
+            return Node.lt_table[(self.id, other.id)]
+        else:
+            result = lt()
+            Node.lt_table[(self.id, other.id)] = result
+            return result
+        """
+        return lt()
 
     def __gt__(self, other):
-        print("__gt__", end=" ")
         return not self < other and self is not other
-
-    def __ge__(self, other):
-        print("__ge__")
-        return not self < other
-
-    def __le__(self, other):
-        print("__le__", end=" ")
-        return self < other or self is other
-
-    def __eq__(self, other):
-        print("__eq__")
-        return self is other
-
-    def __ne__(self, other):
-        print("__ne__")
-        return self is not other
 
     def __repr__(self):
         return "Node({},{})".format(
@@ -56,10 +50,13 @@ def swap(V, x, y):
 
 
 def sort(V):
+    #print([v.id for v in V])
     for i in range(len(V)):
         for j in reversed(range(i, len(V) - 1)):
             if V[j] > V[j+1]:
-                swap(V, j, j+1)
+                swap(V, j, j + 1)
+                #print("  ", [v.id for v in V])
+        #print([v.id for v in V])
 
 
 def main():
