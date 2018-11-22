@@ -2,38 +2,30 @@ class Node():
     def __init__(self, id):
         self.id = id
         self.adj = []
+        self.radj = []
         self.passed = False
 
+    def is_start(self):
+        return self.radj == []
+
     def __repr__(self):
-        return "Node({},{})".format(
-            self.id,
-            [v.id for v in self.adj])
+        return "Node({},{},{},{})".format(
+            self.id, self.passed,
+            [v.id for v in self.adj],
+            [v.id for v in self.radj])
 
 
 def read_edges(ne, V):
     for _ in range(ne):
         s, t = [int(x) for x in input().split()]
         V[s].adj.append(V[t])
-
-
-def is_start(V, node):
-    for v in V:
-        if node in v.adj:
-            return False
-    return True
-
-
-def is_last_branch(V, node):
-    for v in V:
-        if node in v.adj and not v.passed:
-            return False
-    return True
+        V[t].radj.append(V[s])
 
 
 def sort(V):
     W = []
 
-    def rec(v):
+    def visit(v):
         S = []
         S.append(v)
 
@@ -42,12 +34,13 @@ def sort(V):
             v.passed = True
             W.append(v)
             for a in v.adj:
-                if is_last_branch(V, a):
+                a.radj.remove(v)
+                if a.is_start():
                     S.append(a)
 
     for v in V:
-        if is_start(V, v):
-            rec(v)
+        if v.is_start() and not v.passed:
+            visit(v)
 
     return W
 
