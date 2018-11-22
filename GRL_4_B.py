@@ -1,35 +1,8 @@
 class Node():
-    lt_table = {}
-
     def __init__(self, id):
         self.id = id
         self.adj = []
-
-    def __lt__(self, other):
-        def lt():
-            S = []
-            S.append(self)
-
-            while S:
-                v = S.pop()
-                for a in v.adj:
-                    if other == a:
-                        return True
-                    else:
-                        S.append(a)
-            return False
-        """
-        if (self.id, other.id) in Node.lt_table:
-            return Node.lt_table[(self.id, other.id)]
-        else:
-            result = lt()
-            Node.lt_table[(self.id, other.id)] = result
-            return result
-        """
-        return lt()
-
-    def __gt__(self, other):
-        return not self < other and self is not other
+        self.passed = False
 
     def __repr__(self):
         return "Node({},{})".format(
@@ -43,28 +16,48 @@ def read_edges(ne, V):
         V[s].adj.append(V[t])
 
 
-def swap(V, x, y):
-    tmp = V[x]
-    V[x] = V[y]
-    V[y] = tmp
+def is_start(V, node):
+    for v in V:
+        if node in v.adj:
+            return False
+    return True
+
+
+def is_last_branch(V, node):
+    for v in V:
+        if node in v.adj and not v.passed:
+            return False
+    return True
 
 
 def sort(V):
-    #print([v.id for v in V])
-    for i in range(len(V)):
-        for j in reversed(range(i, len(V) - 1)):
-            if V[j] > V[j+1]:
-                swap(V, j, j + 1)
-                #print("  ", [v.id for v in V])
-        #print([v.id for v in V])
+    W = []
+
+    def rec(v):
+        S = []
+        S.append(v)
+
+        while S:
+            v = S.pop()
+            v.passed = True
+            W.append(v)
+            for a in v.adj:
+                if is_last_branch(V, a):
+                    S.append(a)
+
+    for v in V:
+        if is_start(V, v):
+            rec(v)
+
+    return W
 
 
 def main():
     nv, ne = [int(x) for x in input().split()]
     V = [Node(id) for id in range(nv)]
     read_edges(ne, V)
-    sort(V)
-    [print(v.id) for v in V]
+    W = sort(V)
+    [print(v.id) for v in W]
 
 
 if __name__ == '__main__':
