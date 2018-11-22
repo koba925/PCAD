@@ -2,11 +2,11 @@ class Node():
     def __init__(self, id):
         self.id = id
         self.adj = []
-        self.radj = []
+        self.indeg = 0
         self.passed = False
 
     def is_start(self):
-        return self.radj == []
+        return self.indeg == 0
 
     def __repr__(self):
         return "Node({},{},{},{})".format(
@@ -19,7 +19,7 @@ def read_edges(ne, V):
     for _ in range(ne):
         s, t = [int(x) for x in input().split()]
         V[s].adj.append(V[t])
-        V[t].radj.append(V[s])
+        V[t].indeg += 1
 
 
 def sort(V):
@@ -34,7 +34,7 @@ def sort(V):
             v.passed = True
             W.append(v)
             for a in v.adj:
-                a.radj.remove(v)
+                a.indeg -= 1
                 if a.is_start():
                     S.append(a)
 
