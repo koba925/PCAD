@@ -26,17 +26,12 @@ def sort(V):
     W = []
 
     def visit(v):
-        S = []
-        S.append(v)
-
-        while S:
-            v = S.pop()
-            v.passed = True
-            W.append(v)
-            for a in v.adj:
-                a.indeg -= 1
-                if a.is_start():
-                    S.append(a)
+        v.passed = True
+        W.append(v)
+        for a in v.adj:
+            a.indeg -= 1
+            if a.is_start():
+                visit(a)
 
     for v in V:
         if v.is_start() and not v.passed:
