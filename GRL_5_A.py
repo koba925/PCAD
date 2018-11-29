@@ -1,6 +1,3 @@
-from sys import setrecursionlimit
-
-
 class Node():
     def __init__(self, key):
         self.key = key
@@ -26,35 +23,43 @@ def read_inputs():
     return T
 
 
-cache = {}
-
-
 def furthest(T, s):
-
-    def rec(v):
-        v.passed = True
-        fur = 0
-        for a, w in v.adj:
-            if not a.passed:
-                if (v, a) in cache:
-                    d = cache[(v, a)]
-                else:
-                    d = rec(a) + w
-                    cache[(v, a)] = d
-                fur = max(fur, d)
-        return fur
 
     for v in T:
         v.passed = False
-    return rec(s)
+    fur = -1
+    fur_v = None
+    S = []
+    S.append((s, 0))
+
+    while S != []:
+        v, vr = S.pop()
+        v.passed = True
+        is_end = True
+        for a, w in v.adj:
+            if not a.passed:
+                S.append((a, vr + w))
+                is_end = False
+        if is_end and vr > fur:
+            fur = vr
+            fur_v = v
+
+    return fur, fur_v
 
 
 def tree_diameter(T):
-    return max([0] + [furthest(T, s) for s in T if s.indeg == 1])
+
+    if len(T) == 1:
+        return 0
+
+    s = [s for s in T if s.indeg == 1][0]
+    fur, s2 = furthest(T, s)
+    fur, fur_v = furthest(T, s2)
+
+    return fur
 
 
 def main():
-    setrecursionlimit(100000)
     T = read_inputs()
     r = tree_diameter(T)
     print(r)
