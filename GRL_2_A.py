@@ -1,4 +1,5 @@
 from sys import maxsize
+import heapq
 
 WHITE = 0
 GRAY = 1
@@ -9,9 +10,10 @@ class Node():
     def __init__(self, key):
         self.key = key
         self.color = WHITE
-        self.d = maxsize
-        self.p = -1
         self.adj = []
+
+    def __lt__(self, other):
+        return self.key < other.key
 
     def __repr__(self):
         return "Node({},{},{})".format(
@@ -29,42 +31,23 @@ def read_inputs():
     return G
 
 
-def weight_between(G, u, v):
-    for a, w in u.adj:
-        if a == v:
-            print(u, v, w)
-            return w
-
-
 def min_sp_tree(G):
+    heap = []
+    heapq.heappush(heap, (0, G[0]))
+    total = 0
 
-    G[0].d = 0
-
-    while True:
-        minv = maxsize
-        u = None
-
-        for v in G:
-            if minv > v.d and v.color != BLACK:
-                u = v
-                minv = v.d
-
-        if u is None:
-            break
-
+    while heap != []:
+        d, u = heapq.heappop(heap)
+        if u.color == BLACK:
+            continue
         u.color = BLACK
-        for v in G:
-            if v.color == BLACK:
-                continue
-            for a, w in u.adj:
-                if a != v:
-                    continue
-                if v.d > w:
-                    v.d = w
-                    v.p = u
-                    v.color = GRAY
+        total += d
+        for a, w in u.adj:
+            if a.color != BLACK:
+                a.color = GRAY
+                heapq.heappush(heap, (w, a))
 
-    return sum([weight_between(G, v.p, v) for v in G if v.p != -1])
+    return total
 
 
 def main():
