@@ -5,3 +5,4 @@ out.txt
 pcad.md
 blog.md
 .vscode/
+.mypy_cache/
