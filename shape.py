@@ -83,7 +83,7 @@ class Segment:
             return NotImplemented
         return self.p1 == other.p1 and self.p2 == other.p2
 
-    def vector(self):
+    def vector(self) -> Vector:
         return self.p2 - self.p1
 
     def is_orthogonal(self, other: 'Segment') -> bool:
@@ -91,6 +91,11 @@ class Segment:
 
     def is_parallel(self, other: 'Segment') -> bool:
         return self.vector().is_parallel(other.vector())
+
+    def projection(self, p: Point) -> Point:
+        v = self.vector()
+        vp = p - self.p1
+        return v.dot(vp) / v.norm() * v + self.p1
 
 
 Line = Segment
