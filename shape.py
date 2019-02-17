@@ -97,6 +97,10 @@ class Segment:
         vp = p - self.p1
         return v.dot(vp) / v.norm() * v + self.p1
 
+    def reflection(self, p: Point) -> Point:
+        x = self.projection(p)
+        return p + 2 * (x - p)
+
 
 Line = Segment
 
