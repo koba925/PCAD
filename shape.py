@@ -1,6 +1,6 @@
 #! /usr/bin/env python3
 
-from typing import List
+from typing import List, Tuple
 from math import sqrt
 
 EPS = 1e-10
@@ -64,6 +64,31 @@ class Point:
     def is_parallel(self, other: 'Point') -> bool:
         return float_equal(self.cross(other), 0.0)
 
+    def distance(self, other: 'Point') -> float:
+        return (self - other).abs()
+
+    def in_side_of(self, seg: 'Segment') -> bool:
+        return seg.vector().dot(
+            Segment(seg.p1, self).vector()) >= 0
+
+    def in_width_of(self, seg: 'Segment') -> bool:
+        return \
+            self.in_side_of(seg) and \
+            self.in_side_of(seg.reverse())
+
+    def distance_to_line(self, seg: 'Segment') -> float:
+        return \
+            abs((self - seg.p1).cross(seg.vector())) / \
+            seg.length()
+
+    def distance_to_segment(self, seg: 'Segment') -> float:
+        if not self.in_side_of(seg):
+            return self.distance(seg.p1)
+        if not self.in_side_of(seg.reverse()):
+            return self.distance(seg.p2)
+        else:
+            return self.distance_to_line(seg)
+
 
 Vector = Point
 
@@ -86,6 +111,12 @@ class Segment:
     def vector(self) -> Vector:
         return self.p2 - self.p1
 
+    def reverse(self) -> 'Segment':
+        return Segment(self.p2, self.p1)
+
+    def length(self) -> float:
+        return self.p1.distance(self.p2)
+
     def is_orthogonal(self, other: 'Segment') -> bool:
         return self.vector().is_orthogonal(other.vector())
 
@@ -100,6 +131,33 @@ class Segment:
     def reflection(self, p: Point) -> Point:
         x = self.projection(p)
         return p + 2 * (x - p)
+
+    def intersect_ratio(self, other: 'Segment') -> Tuple[float, float]:
+        a = self.vector()
+        b = other.vector()
+        c = self.p1 - other.p1
+        s = b.cross(c) / a.cross(b)
+        t = a.cross(c) / a.cross(b)
+        return s, t
+
+    def intersects(self, other: 'Segment') -> bool:
+        s, t = self.intersect_ratio(other)
+        return (0 <= s <= 1) and (0 <= t <= 1)
+
+    def intersection(self, other: 'Segment') -> Point:
+        s, _ = self.intersect_ratio(other)
+        return self.p1 + s * self.vector()
+
+    def distance_with_segment(self, other: 'Segment') -> float:
+        if not self.is_parallel(other) and \
+                self.intersects(other):
+            return 0
+        else:
+            return min(
+                self.p1.distance_to_segment(other),
+                self.p2.distance_to_segment(other),
+                other.p1.distance_to_segment(self),
+                other.p2.distance_to_segment(self))
 
 
 Line = Segment
