@@ -2,12 +2,21 @@
 
 from typing import List, Tuple
 from math import sqrt
+from enum import Enum
 
 EPS = 1e-10
 
 
 def float_equal(x: float, y: float) -> bool:
     return abs(x - y) < EPS
+
+
+class PointLocation(Enum):
+    COUNTER_CLOCKWISE = 1
+    CLOCKWISE = 2
+    ONLINE_BACK = 3
+    ONLINE_FRONT = 4
+    ON_SEGMENT = 5
 
 
 class Point:
@@ -88,6 +97,19 @@ class Point:
             return self.distance(seg.p2)
         else:
             return self.distance_to_line(seg)
+
+    def location(self, seg: 'Segment') -> PointLocation:
+        p = self - seg.p1
+        d = seg.vector().cross(p)
+        if d > EPS:
+            return PointLocation.COUNTER_CLOCKWISE
+        if d < -EPS:
+            return PointLocation.CLOCKWISE
+        if seg.vector().dot(p) < 0.0:
+            return PointLocation.ONLINE_BACK
+        if seg.vector().norm() < p.norm():
+            return PointLocation.ONLINE_FRONT
+        return PointLocation.ON_SEGMENT
 
 
 Vector = Point

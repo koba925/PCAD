@@ -1,7 +1,7 @@
 #! /usr/bin/env python3
 
 import unittest
-from shape import float_equal, Point, Vector, Segment, Line, Circle
+from shape import float_equal, PointLocation, Point, Vector, Segment, Line, Circle
 
 
 class TestPoint(unittest.TestCase):
@@ -258,6 +258,30 @@ class TestSegment(unittest.TestCase):
         self.assertEqual(s.distance_with_segment(t), 1.0)
         t = Segment(Point(5.0, 3.0), Point(5.0, 4.0))
         self.assertEqual(s.distance_with_segment(t), 5.0)
+
+    def test_location(self):
+        s1 = Segment(Point(1.0, 2.0), Point(3.0, 5.0))
+        self.assertEqual(Point(-1.0, -1.0).location(s1),
+                         PointLocation.ONLINE_BACK)
+        self.assertEqual(Point(2.0, 3.5).location(s1),
+                         PointLocation.ON_SEGMENT)
+        self.assertEqual(Point(5.0, 8.0).location(s1),
+                         PointLocation.ONLINE_FRONT)
+        self.assertEqual(Point(3.0, 6.0).location(s1),
+                         PointLocation.COUNTER_CLOCKWISE)
+        self.assertEqual(Point(3.0, 1.0).location(s1),
+                         PointLocation.CLOCKWISE)
+        s2 = Segment(Point(0.0, 0.0), Point(0.0, 2.0))
+        self.assertEqual(Point(0.0, -1.0).location(s2),
+                         PointLocation.ONLINE_BACK)
+        self.assertEqual(Point(0.0, 1.0).location(s2),
+                         PointLocation.ON_SEGMENT)
+        self.assertEqual(Point(0.0, 3.0).location(s2),
+                         PointLocation.ONLINE_FRONT)
+        self.assertEqual(Point(-1.0, 0.0).location(s2),
+                         PointLocation.COUNTER_CLOCKWISE)
+        self.assertEqual(Point(1.0, 0.0).location(s2),
+                         PointLocation.CLOCKWISE)
 
 
 class TestLine(unittest.TestCase):
