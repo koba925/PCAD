@@ -2,7 +2,7 @@
 
 from typing import List, Tuple
 from math import sqrt
-from enum import Enum
+from enum import IntEnum
 
 EPS = 1e-10
 
@@ -11,12 +11,20 @@ def float_equal(x: float, y: float) -> bool:
     return abs(x - y) < EPS
 
 
-class PointLocation(Enum):
+class PointLocation(IntEnum):
     COUNTER_CLOCKWISE = 1
-    CLOCKWISE = 2
-    ONLINE_BACK = 3
-    ONLINE_FRONT = 4
-    ON_SEGMENT = 5
+    CCW = 1
+    CLOCKWISE = -1
+    CW = -1
+    ONLINE_BACK = 2
+    O_B = 2
+    ONLINE_FRONT = -2
+    O_F = -2
+    ON_SEGMENT = 0
+    O_S = 0
+
+
+PL = PointLocation
 
 
 class Point:
@@ -163,8 +171,12 @@ class Segment:
         return s, t
 
     def intersects(self, other: 'Segment') -> bool:
-        s, t = self.intersect_ratio(other)
-        return (0 <= s <= 1) and (0 <= t <= 1)
+        d0: PointLocation = self.p1.location(other)
+        d1: PointLocation = self.p2.location(other)
+        d2: PointLocation = other.p1.location(self)
+        d3: PointLocation = other.p2.location(self)
+        return d0 * d1 * d2 * d3 == 0 or \
+            (d0 * d1 == -1 and d2 * d3 == -1)
 
     def intersection(self, other: 'Segment') -> Point:
         s, _ = self.intersect_ratio(other)
