@@ -162,14 +162,6 @@ class Segment:
         x = self.projection(p)
         return p + 2 * (x - p)
 
-    def intersect_ratio(self, other: 'Segment') -> Tuple[float, float]:
-        a = self.vector()
-        b = other.vector()
-        c = self.p1 - other.p1
-        s = b.cross(c) / a.cross(b)
-        t = a.cross(c) / a.cross(b)
-        return s, t
-
     def intersects(self, other: 'Segment') -> bool:
         d0: PointLocation = self.p1.location(other)
         d1: PointLocation = self.p2.location(other)
@@ -179,8 +171,11 @@ class Segment:
             (d0 * d1 == -1 and d2 * d3 == -1)
 
     def intersection(self, other: 'Segment') -> Point:
-        s, _ = self.intersect_ratio(other)
-        return self.p1 + s * self.vector()
+        a = self.vector()
+        b = other.vector()
+        c = self.p1 - other.p1
+        s = b.cross(c) / a.cross(b)
+        return self.p1 + s * a
 
     def distance_with_segment(self, other: 'Segment') -> float:
         if not self.is_parallel(other) and \
@@ -210,3 +205,10 @@ class Circle:
 
     def __repr__(self) -> str:
         return "Circle({}, {})".format(self.c, self.r)
+
+    def cross_point(self, line: Line) -> List[Point]:
+        proj = line.projection(self.c)
+        dist = self.c.distance_to_line(line)
+        tan = sqrt(self.r * self.r - dist * dist)
+        u = line.vector() / line.vector().abs()
+        return sorted([proj - tan * u, proj + tan * u])
