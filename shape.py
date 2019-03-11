@@ -1,7 +1,7 @@
 #! /usr/bin/env python3
 
 from typing import List, Tuple
-from math import sqrt
+from math import sqrt, sin, cos, acos, atan2
 from enum import IntEnum
 
 EPS = 1e-10
@@ -62,6 +62,13 @@ class Point:
         return self.y < other.y \
             if abs(self.x - other.x) < EPS \
             else self.x < other.x
+
+    @staticmethod
+    def polar(a: float, r: float) -> 'Point':
+        return Point(a * cos(r), a * sin(r))
+
+    def arg(self) -> float:
+        return atan2(self.y, self.x)
 
     def norm(self):
         return self.x * self.x + self.y * self.y
@@ -206,9 +213,18 @@ class Circle:
     def __repr__(self) -> str:
         return "Circle({}, {})".format(self.c, self.r)
 
-    def cross_point(self, line: Line) -> List[Point]:
+    def cross_point_line(self, line: Line) -> List[Point]:
         proj = line.projection(self.c)
         dist = self.c.distance_to_line(line)
         tan = sqrt(self.r * self.r - dist * dist)
         u = line.vector() / line.vector().abs()
         return sorted([proj - tan * u, proj + tan * u])
+
+    def cross_point_circle(self, other: 'Circle') -> List[Point]:
+        d = (other.c - self.c).abs()
+        r1 = self.r
+        r2 = other.r
+        a = acos((r1 * r1 + d * d - r2 * r2) / (2 * r1 * d))
+        t = (other.c - self.c).arg()
+        return sorted([self.c + Vector.polar(self.r, t + a),
+                       self.c + Vector.polar(self.r, t - a)])
