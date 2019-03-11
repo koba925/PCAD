@@ -289,15 +289,28 @@ class TestCircle(unittest.TestCase):
         c = Circle(1, 2)
         self.assertEqual(c.__repr__(), 'Circle(1, 2)')
 
-    def test_cross_point(self):
+    def test_cross_point_line(self):
         self.assertEqual(
-            Circle(Point(2, 3), 2).cross_point(
+            Circle(Point(2, 3), 2).cross_point_line(
                 Line(Point(0, 3), Point(1, 3))),
             [Point(0, 3), Point(4, 3)])
         self.assertEqual(
-            Circle(Point(2, 3), 2).cross_point(
+            Circle(Point(2, 3), 2).cross_point_line(
                 Line(Point(4, 0), Point(4, 6))),
             [Point(4, 3), Point(4, 3)])
+
+    def test_cross_point_circle(self):
+        print(Circle(Point(0, 0), 2).cross_point_circle(
+            Circle(Point(2, 0), 2)))
+        self.assertTrue(
+            Circle(Point(0, 0), 2).cross_point_circle(
+                Circle(Point(2, 0), 2)) ==
+            [Point(1.0, -1.7320508075),
+             Point(1.0, 1.7320508075)])
+        self.assertTrue(
+            Circle(Point(0, 0), 2).cross_point_circle(
+                Circle(Point(0, 3), 1)) ==
+            [Point(0, 2), Point(0, 2)])
 
 
 if __name__ == "__main__":
