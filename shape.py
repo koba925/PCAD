@@ -1,6 +1,6 @@
 #! /usr/bin/env python3
 
-from typing import List, Tuple
+from typing import List, Tuple, Optional, Generator
 from math import sqrt, sin, cos, acos, atan2
 from enum import IntEnum
 
@@ -13,18 +13,16 @@ def float_equal(x: float, y: float) -> bool:
 
 class PointLocation(IntEnum):
     COUNTER_CLOCKWISE = 1
-    CCW = 1
     CLOCKWISE = -1
-    CW = -1
     ONLINE_BACK = 2
-    O_B = 2
     ONLINE_FRONT = -2
-    O_F = -2
     ON_SEGMENT = 0
-    O_S = 0
 
 
-PL = PointLocation
+class Containment(IntEnum):
+    OUTSIDE = 0
+    ONLINE = 1
+    INSIDE = 2
 
 
 class Point:
@@ -70,10 +68,10 @@ class Point:
     def arg(self) -> float:
         return atan2(self.y, self.x)
 
-    def norm(self):
+    def norm(self) -> float:
         return self.x * self.x + self.y * self.y
 
-    def abs(self):
+    def abs(self) -> float:
         return sqrt(self.norm())
 
     def dot(self, other: 'Point') -> float:
@@ -132,7 +130,9 @@ Vector = Point
 
 class Segment:
 
-    def __init__(self, p1: Point = None, p2: Point = None) -> None:
+    def __init__(self,
+                 p1: Optional[Point] = None,
+                 p2: Optional[Point] = None) -> None:
         self.p1: Point = Point() if p1 is None else p1
         self.p2: Point = Point() if p2 is None else p2
 
@@ -201,7 +201,9 @@ Line = Segment
 
 class Circle:
 
-    def __init__(self, c: Point=None, r: float=0.0) -> None:
+    def __init__(self,
+                 c: Optional[Point] = None,
+                 r: float=0.0) -> None:
         self.c: Point = Point() if c is None else c
         self.r: float = r
 
@@ -228,3 +230,43 @@ class Circle:
         t = (other.c - self.c).arg()
         return sorted([self.c + Vector.polar(self.r, t + a),
                        self.c + Vector.polar(self.r, t - a)])
+
+
+class Polygon:
+    def __init__(self, vertices: List[Point]) -> None:
+        self.vertices = vertices
+        self.n = len(vertices)
+
+    def sides(self) -> Generator[Segment, None, None]:
+        for i in range(self.n):
+            yield Segment(self.vertices[i],
+                          self.vertices[(i + 1) % self.n])
+
+    def next(self, k: int) -> int:
+        return (k + 1) % self.n
+
+    def contains(self, p: Point) -> Containment:
+        ps = Segment(p, Point(100000.0, p.y))
+        count = 0
+        for k in range(self.n):
+            p1 = self.vertices[k]
+            k = self.next(k)
+            p2 = self.vertices[k]
+            s = Segment(p1, p2)
+            if p.location(s) == PointLocation.ON_SEGMENT:
+                return Containment.ONLINE
+            if p.x < p1.x and float_equal(p.y, p1.y):
+                continue
+            if p.x < p2.x and float_equal(p.y, p2.y):
+                k = self.next(k)
+                while True:
+                    p3 = self.vertices[k]
+                    if not float_equal(p2.y, p3.y):
+                        break
+                    k = self.next(k)
+                if p1.y < p2.y < p3.y or p1.y > p2.y > p3.y:
+                    count += 1
+            elif ps.intersects(s):
+                count += 1
+        return Containment.OUTSIDE if count % 2 == 0 \
+            else Containment.INSIDE

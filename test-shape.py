@@ -1,7 +1,9 @@
 #! /usr/bin/env python3
 
 import unittest
-from shape import float_equal, PointLocation, Point, Vector, Segment, Line, Circle
+from shape import float_equal, Point, Vector, Segment, Line, Circle, Polygon
+from shape import PointLocation as PL
+from shape import Containment as CN
 
 
 class TestPoint(unittest.TestCase):
@@ -199,12 +201,11 @@ class TestSegment(unittest.TestCase):
         p2 = Point(4, 0)
         p3 = Point(0, 2)
         p4 = Point(4, 2)
-        p5 = Point(2, 1)
-        p6 = Point(2, 0)
+        p5 = Point(2, 0)
         self.assertTrue(
             Segment(p1, p4).intersects(Segment(p2, p3)))
         self.assertFalse(
-            Segment(p1, p6).intersects(Segment(p2, p3)))
+            Segment(p1, p5).intersects(Segment(p2, p3)))
 
     def test_intersection(self):
         p1 = Point(0, 0)
@@ -232,26 +233,26 @@ class TestSegment(unittest.TestCase):
     def test_location(self):
         s1 = Segment(Point(1, 2), Point(3, 5))
         self.assertEqual(Point(-1, -1).location(s1),
-                         PointLocation.ONLINE_BACK)
+                         PL.ONLINE_BACK)
         self.assertEqual(Point(2, 3.5).location(s1),
-                         PointLocation.ON_SEGMENT)
+                         PL.ON_SEGMENT)
         self.assertEqual(Point(5, 8).location(s1),
-                         PointLocation.ONLINE_FRONT)
+                         PL.ONLINE_FRONT)
         self.assertEqual(Point(3, 6).location(s1),
-                         PointLocation.COUNTER_CLOCKWISE)
+                         PL.COUNTER_CLOCKWISE)
         self.assertEqual(Point(3, 1).location(s1),
-                         PointLocation.CLOCKWISE)
+                         PL.CLOCKWISE)
         s2 = Segment(Point(0, 0), Point(0, 2))
         self.assertEqual(Point(0, -1).location(s2),
-                         PointLocation.ONLINE_BACK)
+                         PL.ONLINE_BACK)
         self.assertEqual(Point(0, 1).location(s2),
-                         PointLocation.ON_SEGMENT)
+                         PL.ON_SEGMENT)
         self.assertEqual(Point(0, 3).location(s2),
-                         PointLocation.ONLINE_FRONT)
+                         PL.ONLINE_FRONT)
         self.assertEqual(Point(-1, 0).location(s2),
-                         PointLocation.COUNTER_CLOCKWISE)
+                         PL.COUNTER_CLOCKWISE)
         self.assertEqual(Point(1, 0).location(s2),
-                         PointLocation.CLOCKWISE)
+                         PL.CLOCKWISE)
 
 
 class TestLine(unittest.TestCase):
@@ -300,8 +301,6 @@ class TestCircle(unittest.TestCase):
             [Point(4, 3), Point(4, 3)])
 
     def test_cross_point_circle(self):
-        print(Circle(Point(0, 0), 2).cross_point_circle(
-            Circle(Point(2, 0), 2)))
         self.assertTrue(
             Circle(Point(0, 0), 2).cross_point_circle(
                 Circle(Point(2, 0), 2)) ==
@@ -311,6 +310,64 @@ class TestCircle(unittest.TestCase):
             Circle(Point(0, 0), 2).cross_point_circle(
                 Circle(Point(0, 3), 1)) ==
             [Point(0, 2), Point(0, 2)])
+
+
+class TestPolygon(unittest.TestCase):
+    def test_init(self):
+        p = Polygon([Point(0, 0), Point(1, 0), Point(0, 1)])
+        self.assertEqual(p.vertices, [Point(0, 0), Point(1, 0), Point(0, 1)])
+        self.assertEqual(p.n, 3)
+
+    def test_sides(self):
+        p = Polygon([Point(0, 0), Point(1, 0), Point(0, 1)])
+        self.assertEqual(
+            list(p.sides()),
+            [Segment(Point(0, 0), Point(1, 0)),
+             Segment(Point(1, 0), Point(0, 1)),
+             Segment(Point(0, 1), Point(0, 0))])
+
+    def test_contains(self):
+        p = Polygon([Point(1, 1),
+                     Point(7, 1),
+                     Point(7, 3),
+                     Point(5, 5),
+                     Point(5, 3),
+                     Point(3, 3),
+                     Point(1, 5)])
+        self.assertEqual(p.contains(Point(0, 0)), CN.OUTSIDE)
+        self.assertEqual(p.contains(Point(0, 1)), CN.OUTSIDE)
+        self.assertEqual(p.contains(Point(1, 1)), CN.ONLINE)
+        self.assertEqual(p.contains(Point(4, 1)), CN.ONLINE)
+        self.assertEqual(p.contains(Point(7, 1)), CN.ONLINE)
+        self.assertEqual(p.contains(Point(0, 2)), CN.OUTSIDE)
+        self.assertEqual(p.contains(Point(1, 2)), CN.ONLINE)
+        self.assertEqual(p.contains(Point(4, 2)), CN.INSIDE)
+        self.assertEqual(p.contains(Point(7, 2)), CN.ONLINE)
+        self.assertEqual(p.contains(Point(0, 3)), CN.OUTSIDE)
+        self.assertEqual(p.contains(Point(1, 3)), CN.ONLINE)
+        self.assertEqual(p.contains(Point(2, 3)), CN.INSIDE)
+        self.assertEqual(p.contains(Point(3, 3)), CN.ONLINE)
+        self.assertEqual(p.contains(Point(4, 3)), CN.ONLINE)
+        self.assertEqual(p.contains(Point(5, 3)), CN.ONLINE)
+        self.assertEqual(p.contains(Point(6, 3)), CN.INSIDE)
+        self.assertEqual(p.contains(Point(7, 3)), CN.ONLINE)
+        self.assertEqual(p.contains(Point(0, 4)), CN.OUTSIDE)
+        self.assertEqual(p.contains(Point(1, 4)), CN.ONLINE)
+        self.assertEqual(p.contains(Point(2, 4)), CN.ONLINE)
+        self.assertEqual(p.contains(Point(4, 4)), CN.OUTSIDE)
+        self.assertEqual(p.contains(Point(5, 4)), CN.ONLINE)
+        self.assertEqual(p.contains(Point(6, 4)), CN.ONLINE)
+        self.assertEqual(p.contains(Point(0, 5)), CN.OUTSIDE)
+        self.assertEqual(p.contains(Point(1, 5)), CN.ONLINE)
+        self.assertEqual(p.contains(Point(4, 5)), CN.OUTSIDE)
+        self.assertEqual(p.contains(Point(5, 5)), CN.ONLINE)
+
+        p = Polygon([Point(1, 1),
+                     Point(7, 1),
+                     Point(5, 3),
+                     Point(3, 3),
+                     Point(1, 5)])
+        self.assertEqual(p.contains(Point(2, 3)), CN.INSIDE)
 
 
 if __name__ == "__main__":
