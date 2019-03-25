@@ -247,26 +247,99 @@ class Polygon:
 
     def contains(self, p: Point) -> Containment:
         ps = Segment(p, Point(100000.0, p.y))
-        count = 0
-        for k in range(self.n):
-            p1 = self.vertices[k]
-            k = self.next(k)
-            p2 = self.vertices[k]
-            s = Segment(p1, p2)
+
+        for s in self.sides():
             if p.location(s) == PointLocation.ON_SEGMENT:
                 return Containment.ONLINE
-            if p.x < p1.x and float_equal(p.y, p1.y):
-                continue
-            if p.x < p2.x and float_equal(p.y, p2.y):
-                k = self.next(k)
-                while True:
-                    p3 = self.vertices[k]
-                    if not float_equal(p2.y, p3.y):
-                        break
-                    k = self.next(k)
-                if p1.y < p2.y < p3.y or p1.y > p2.y > p3.y:
-                    count += 1
-            elif ps.intersects(s):
-                count += 1
+
+        print("not online")
+
+        for n0, prev_p in enumerate(self.vertices):
+            if not float_equal(prev_p.y, p.y):
+                break
+        prev_a = prev_p.y - p.y
+
+        print("start at", n0, prev_p, prev_a)
+
+        count = 0
+        for k in range(self.n):
+            n = (k + 1 + n0) % self.n
+            cur_p = self.vertices[n]
+            cur_a = cur_p.y - p.y
+            print("to", n, cur_p, cur_a)
+            s = Segment(prev_p, cur_p)
+            print(s)
+            if not float_equal(cur_p.y, p.y):
+                print("off line")
+                if prev_a * cur_a < 0:
+                    print("crossed")
+                    print("intersects", ps, s, ps.intersects(s))
+                    if ps.intersects(s):
+                        count += 1
+                prev_a = cur_a
+            prev_p = cur_p
+            print("count", count)
         return Containment.OUTSIDE if count % 2 == 0 \
             else Containment.INSIDE
+
+
+"""
+p = Polygon([Point(1, 1),
+             Point(7, 1),
+             Point(7, 3),
+             Point(5, 5),
+             Point(5, 3),
+             Point(3, 3),
+             Point(1, 5)])
+print(p.contains(Point(4, 2)))
+"""
+
+p = Polygon([Point(0, 0),
+             Point(3, 1),
+             Point(3, 3),
+             Point(0, 3)])
+print(p.contains(Point(1, 1)))
+
+"""
+4
+0 0
+3 1
+3 3
+0 3
+16
+1 1
+2 1
+1 2
+2 2
+3 1
+3 2
+0 3
+0 2
+2 0
+4 1
+-1 1
+0 -1
+1 4
+3 4
+4 3
+-2 3
+"""
+
+"""
+2
+2
+2
+2
+1
+1
+1
+1
+0
+0
+0
+0
+0
+0
+0
+0
+"""
