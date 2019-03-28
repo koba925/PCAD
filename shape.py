@@ -18,6 +18,11 @@ class PointLocation(IntEnum):
     ONLINE_FRONT = -2
     ON_SEGMENT = 0
 
+    def is_online(self):
+        return self in [PointLocation.ON_SEGMENT,
+                        PointLocation.ONLINE_BACK,
+                        PointLocation.ONLINE_FRONT]
+
 
 class Containment(IntEnum):
     OUTSIDE = 0
@@ -36,7 +41,6 @@ class Point:
 
     def __eq__(self, other: object) -> bool:
         if not isinstance(other, Point):
-            # print("NotImplemented in Point")
             return NotImplemented
         return float_equal(self.x, other.x) and \
             float_equal(self.y, other.y)
@@ -141,7 +145,6 @@ class Segment:
 
     def __eq__(self, other: object) -> bool:
         if not isinstance(other, Segment):
-            # print("NotImplemented in Segment")
             return NotImplemented
         return self.p1 == other.p1 and self.p2 == other.p2
 
@@ -242,43 +245,31 @@ class Polygon:
             yield Segment(self.vertices[i],
                           self.vertices[(i + 1) % self.n])
 
-    def next(self, k: int) -> int:
-        return (k + 1) % self.n
-
     def contains(self, p: Point) -> Containment:
         ps = Segment(p, Point(100000.0, p.y))
+        count = 0
+        prev_l = self.vertices[0].location(ps)
+        if prev_l.is_online():
+            prev_l = self.vertices[-1].location(ps)
 
         for s in self.sides():
+            # print(p, s)
             if p.location(s) == PointLocation.ON_SEGMENT:
+                # print("on the perimeter")
                 return Containment.ONLINE
+            cur_l = s.p2.location(ps)
+            # print(prev_l, cur_l)
+            if cur_l.is_online() or prev_l == cur_l:
+                # print("not beyond the line")
+                continue
 
-        print("not online")
+            # print("beyond the line")
+            if ps.intersects(s):
+                # print("crossed")
+                count += 1
+            prev_l = cur_l
+            # print("count", count)
 
-        for n0, prev_p in enumerate(self.vertices):
-            if not float_equal(prev_p.y, p.y):
-                break
-        prev_a = prev_p.y - p.y
-
-        print("start at", n0, prev_p, prev_a)
-
-        count = 0
-        for k in range(self.n):
-            n = (k + 1 + n0) % self.n
-            cur_p = self.vertices[n]
-            cur_a = cur_p.y - p.y
-            print("to", n, cur_p, cur_a)
-            s = Segment(prev_p, cur_p)
-            print(s)
-            if not float_equal(cur_p.y, p.y):
-                print("off line")
-                if prev_a * cur_a < 0:
-                    print("crossed")
-                    print("intersects", ps, s, ps.intersects(s))
-                    if ps.intersects(s):
-                        count += 1
-                prev_a = cur_a
-            prev_p = cur_p
-            print("count", count)
         return Containment.OUTSIDE if count % 2 == 0 \
             else Containment.INSIDE
 
@@ -291,55 +282,13 @@ p = Polygon([Point(1, 1),
              Point(5, 3),
              Point(3, 3),
              Point(1, 5)])
-print(p.contains(Point(4, 2)))
+print(p.contains(Point(0, 1)))
 """
 
+"""
 p = Polygon([Point(0, 0),
              Point(3, 1),
              Point(3, 3),
              Point(0, 3)])
-print(p.contains(Point(1, 1)))
-
-"""
-4
-0 0
-3 1
-3 3
-0 3
-16
-1 1
-2 1
-1 2
-2 2
-3 1
-3 2
-0 3
-0 2
-2 0
-4 1
--1 1
-0 -1
-1 4
-3 4
-4 3
--2 3
-"""
-
-"""
-2
-2
-2
-2
-1
-1
-1
-1
-0
-0
-0
-0
-0
-0
-0
-0
+print(p.contains(Point(4, 1)))
 """

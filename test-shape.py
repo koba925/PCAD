@@ -4,7 +4,7 @@ import unittest
 from shape import float_equal, Point, Vector, Segment, Line, Circle, Polygon
 from shape import PointLocation as PL
 from shape import Containment as CN
-
+import sys
 
 class TestPoint(unittest.TestCase):
 
