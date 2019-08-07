@@ -39,6 +39,9 @@ class Point:
     def __repr__(self) -> str:
         return "Point({}, {})".format(self.x, self.y)
 
+    def __str__(self) -> str:
+        return f"{self.x} {self.y}"
+
     def __eq__(self, other: object) -> bool:
         if not isinstance(other, Point):
             return NotImplemented
@@ -245,50 +248,65 @@ class Polygon:
             yield Segment(self.vertices[i],
                           self.vertices[(i + 1) % self.n])
 
-    def contains(self, p: Point) -> Containment:
+    def my_contains(self, p: Point) -> Containment:
         ps = Segment(p, Point(100000.0, p.y))
         count = 0
+
         prev_l = self.vertices[0].location(ps)
         if prev_l.is_online():
             prev_l = self.vertices[-1].location(ps)
 
         for s in self.sides():
-            # print(p, s)
             if p.location(s) == PointLocation.ON_SEGMENT:
-                # print("on the perimeter")
                 return Containment.ONLINE
             cur_l = s.p2.location(ps)
-            # print(prev_l, cur_l)
             if cur_l.is_online() or prev_l == cur_l:
-                # print("not beyond the line")
                 continue
-
-            # print("beyond the line")
             if ps.intersects(s):
-                # print("crossed")
                 count += 1
             prev_l = cur_l
-            # print("count", count)
 
         return Containment.OUTSIDE if count % 2 == 0 \
             else Containment.INSIDE
 
+    def contains(self, p: Point) -> Containment:
+        ps = Segment(p, Point(100000.0, p.y))
+        count = 0
+
+        for s in self.sides():
+            if p.location(s) == PointLocation.ON_SEGMENT:
+                return Containment.ONLINE
+            if s.p1.y > s.p2.y:
+                s = s.reverse()
+            l1 = s.p1.location(ps)
+            l2 = s.p2.location(ps)
+            if l1 != PointLocation.COUNTER_CLOCKWISE and \
+                l2 == PointLocation.COUNTER_CLOCKWISE and \
+                ps.intersects(s):
+                count += 1
+
+        return Containment.OUTSIDE if count % 2 == 0 \
+            else Containment.INSIDE
+
+    def text_contains(self, p: Point) -> Containment:
+        x = False
+        for s in self.sides():
+            a = s.p1 - p
+            b = s.p2 - p
+            # print(a, b, a.cross(b), a.dot(b))
+            if abs(a.cross(b)) < EPS and a.dot(b) < EPS:
+                return Containment.ONLINE
+            if a.y > b.y:
+                tmp = a
+                a = b
+                b = tmp
+            # print(a, b, a.cross(b))
+            if a.y < EPS < b.y and a.cross(b) > EPS:
+                x = not x
+            # print(x)
+        return Containment.INSIDE if x else Containment.OUTSIDE
 
 """
-p = Polygon([Point(1, 1),
-             Point(7, 1),
-             Point(7, 3),
-             Point(5, 5),
-             Point(5, 3),
-             Point(3, 3),
-             Point(1, 5)])
-print(p.contains(Point(0, 1)))
-"""
-
-"""
-p = Polygon([Point(0, 0),
-             Point(3, 1),
-             Point(3, 3),
-             Point(0, 3)])
-print(p.contains(Point(4, 1)))
+p = Polygon([Point(0,0),Point(3,1),Point(3,3),Point(0,3)])
+print(p.contains(Point(1,1)))
 """
