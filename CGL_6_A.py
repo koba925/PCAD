@@ -3,10 +3,8 @@
 
 from sys import stdin
 
-# from shape import Point, Segment
-
 class Point:
-    def __init__(self, x: float=0.0, y: float=0.0) -> None:
+    def __init__(self, x=0.0, y=0.0):
         self.x = x
         self.y = y
 
@@ -36,12 +34,6 @@ class Node():
         x = self
         while x.left is not None:
             x = x.left
-        return x
-
-    def maximum_child(self):
-        x = self
-        while x.right is not None:
-            x = x.right
         return x
 
     def successor(self):
@@ -92,7 +84,6 @@ class Tree():
         return x
 
     def delete(self, z):
-        # print(self,z)
         y = z if z.left is None or z.right is None \
             else z.successor()
         x = y.right if y.left is None else y.left
@@ -110,13 +101,15 @@ class Tree():
         if y != z:
             z.key = y.key
 
+# x1とx2の間にある現在有効な縦の線分の数を数える
 
 def crosses(x1, x2, T):
     node = T.root
     leftmost = None
-        
+
     # print("in crosses:", x1, x2)
 
+    # x1より右にあるノードのなかで最も左にあるものを探す
     while node is not None:
         # print("crosses node leftmost", node, leftmost)
         if x1 < node.key[1].p1.x:
@@ -130,10 +123,8 @@ def crosses(x1, x2, T):
             node = node.right
 
     # print("crosses leftmost:", leftmost)
-    
-    if leftmost is None:
-        return 0
 
+    # leftmostより右で、x2より左にある線分を数える
     n_crosses = 0
     node = leftmost
     while node is not None and node.key[1].p2.x <= x2:
@@ -148,16 +139,24 @@ def main():
     segments = []
 
     for i in range(n):
+
+        # 線分のデータを読み込む
         x1, y1, x2, y2 = [int(x) for x in stdin.readline().split()]
+
+        # x1 < x2、y1 < y2になるようにする
         if x1 == x2:
             if y1 > y2:
                 y1, y2 = y2, y1
         else:
             if x1 > x2:
                 x1, x2 = x2, x1
+
+        # 線分をリストに保存
         seg = Segment(Point(x1, y1), Point(x2, y2))
         if x1 == x2:
+            # 縦の線分を始点で登録
             segments.append((y1, 1, seg))
+            # 縦の線分を終点で登録
             segments.append((y2, 3, seg))
         else:
             segments.append((y1, 2, seg))
@@ -168,13 +167,17 @@ def main():
     T = Tree()
     n_cross = 0
 
+    # 線分をy座標の小さいものから見ていく
     for y, k, seg in segments:
         # print(y, k, seg)
         if k == 1:
+            # 縦の線分の始点なら木に登録
             T.insert(Node((seg.p1.x, seg)))
         elif k == 3:
+            # 縦の線分の終点なら木から削除
             T.delete(T.find((seg.p1.x, seg)))
         else:
+            # 横の線分なら現在有効な縦線との交点を数える
             n_cross += crosses(seg.p1.x, seg.p2.x, T)
         # print(T)
 
