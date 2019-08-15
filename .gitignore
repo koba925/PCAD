@@ -10,5 +10,4 @@ PCAD.code-workspace
 htmlcov/
 .coverage
 *,cover
-
-
+blog.html
