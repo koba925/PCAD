@@ -3,23 +3,18 @@ from sys import setrecursionlimit
 
 
 def changes(amount: int, kind: int, coins: List[int]) -> int:
-
-    min_changes = 50001
-
-    def rec(a: int, k: int, changes: int) -> None:
-        nonlocal min_changes
-        # print(a, k, changes)
+    def rec(a: int, k: int) -> int:
+        # print(a, k)
         if a == 0:
-            min_changes = min(min_changes, changes)
-            return
+            return 0
         elif a < 0 or k < 0:
-            return
+            return 50001
         else:
-            rec(a - coins[k], k, changes + 1)
-            rec(a, k - 1, changes)
+            return min(
+                rec(a - coins[k], k) + 1,
+                rec(a, k - 1))
 
-    rec(amount, kind - 1, 0)
-    return min_changes
+    return rec(amount, kind - 1)
 
 
 def main() -> None:
