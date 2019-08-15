@@ -1,8 +1,11 @@
 from typing import List
+from functools import lru_cache
 from sys import setrecursionlimit
 
 
 def changes(amount: int, kind: int, coins: List[int]) -> int:
+    
+    @lru_cache(maxsize=None)
     def rec(a: int, k: int) -> int:
         # print(a, k)
         if a == 0:
